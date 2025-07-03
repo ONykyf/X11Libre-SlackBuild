@@ -1,0 +1,2 @@
+mkdir -p $PKG/etc/X11
+( cd $PKG/etc/X11 ; ln -sf ../../usr/share/X11/xkb . )

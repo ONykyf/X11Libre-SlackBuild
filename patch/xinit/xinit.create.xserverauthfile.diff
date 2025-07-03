@@ -1,0 +1,13 @@
+--- ./startx.cpp.orig	2022-12-03 16:18:43.000000000 -0600
++++ ./startx.cpp	2024-10-17 14:04:54.997581501 -0500
+@@ -273,6 +273,10 @@
+ 
+     XCOMM create a file with auth information for the server. ':0' is a dummy.
+     xserverauthfile=$HOME/.serverauth.$$
++    if [ ! -e $xserverauthfile ]; then
++      touch $xserverauthfile
++      chmod 600 $xserverauthfile
++    fi
+     trap "rm -f '$xserverauthfile'" HUP INT QUIT ILL TRAP BUS TERM
+     xauth -q -f "$xserverauthfile" << EOF
+ add :$dummy . $mcookie

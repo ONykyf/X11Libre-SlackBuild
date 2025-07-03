@@ -1,0 +1,5 @@
+export CFLAGS="$SLKCFLAGS"
+export CXXFLAGS="$SLKCFLAGS"
+  ninja || exit 1
+  DESTDIR=$PKG ninja install || exit 1
+cd ..

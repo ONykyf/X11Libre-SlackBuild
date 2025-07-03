@@ -1,0 +1,81 @@
+# Build Wayland X Server (currently built as standalone):
+BUILD_XWAYLAND=NO
+
+# Build rootless X packages. This is not the default in Slackware and is
+# unlikely to be any time soon, as --enable-systemd-logind seems to really
+# require systemd and does not function 100% with all graphics chipsets.
+# In particular, resuming from suspend may not work with (at least) Radeon
+# chipsets, and NVIDIA chipsets using proprietary drivers. Also, while
+# rootless X works from "startx", it is unsupported by most login managers
+# which will continue to start X as root.
+#
+# Feel free to try it out, though. To build rootless X packages, start the
+# build like this:
+#
+# ROOTLESSX=YES ./x11.SlackBuild xserver xorg-server
+#
+if [ "$ROOTLESSX" = "YES" ]; then
+  ROOTLESS_OPTIONS="--enable-suid-wrapper --disable-install-setuid --enable-systemd-logind"
+else
+  # Here we are building the traditional setuid root X. Technically we could
+  # dispense with the Xorg.wrap wrapper and just have the actual Xorg binary
+  # in /usr/bin, but we've always had the wrapper anyway and it should not
+  # cause any problems. Besides, it might be possible with this configuration
+  # to remove the setuid permissions from /usr/libexec/Xorg and then add the
+  # user to required groups such as input to run rootless as well, though it
+  # may bring its own security issues since other users who are members of
+  # these groups could monitor the devices. It's not recommended to try to
+  # run X rootless in this way, but we're going to keep the option open for now.
+  ROOTLESS_OPTIONS="--enable-suid-wrapper --enable-install-setuid --disable-systemd-logind"
+fi
+
+# Servers to build:
+if [ "$BUILD_XWAYLAND" = "NO" ]; then
+  XWAYLAND_OPTION="--disable-xwayland"
+else
+  XWAYLAND_OPTION="--enable-xwayland"
+fi
+BUILD_SERVERS="--enable-xorg \
+  --enable-dmx \
+  --enable-xvfb \
+  --enable-xnest \
+  --enable-glamor \
+  --enable-kdrive \
+  --enable-xephyr \
+  $XWAYLAND_OPTION "
+
+# Default font paths to be used by the X server:
+DEF_FONTPATH="/usr/share/fonts/misc,/usr/share/fonts/local,/usr/share/fonts/TTF,/usr/share/fonts/OTF,/usr/share/fonts/Type1,/usr/share/fonts/CID,/usr/share/fonts/75dpi/:unscaled,/usr/share/fonts/100dpi/:unscaled,/usr/share/fonts/75dpi,/usr/share/fonts/100dpi,/usr/share/fonts/cyrillic"
+
+# Reconf (don't remove this plz):
+autoreconf -vif
+
+CFLAGS="$SLKCFLAGS" \
+./configure \
+  --prefix=/usr \
+  --libdir=/usr/lib${LIBDIRSUFFIX} \
+  --sysconfdir=/etc \
+  --localstatedir=/var \
+  --infodir=/usr/info \
+  --mandir=/usr/man \
+  --disable-static \
+  --with-pic \
+  --with-int10=x86emu \
+  --with-default-font-path="${DEF_FONTPATH}" \
+  --with-module-dir=/usr/lib${LIBDIRSUFFIX}/xorg/modules \
+  --with-os-name="Slackware 15.1" \
+  --with-os-vendor="Slackware Linux Project" \
+  --with-xkb-path=/usr/share/X11/xkb \
+  --with-xkb-output=/var/lib/xkb \
+  --enable-config-udev \
+  --disable-config-hal \
+  --enable-year2038 \
+  $BUILD_SERVERS \
+  $ROOTLESS_OPTIONS \
+  --build=$ARCH-slackware-linux
+
+if [ "$ARCH" = "x86_64" ]; then
+  # To prevent the error "No rule to make target `-ldl'"
+  sed -i -e 's#-ldl##' hw/xfree86/Makefile
+  sed -i -e 's#-lm#-lm -ldl#' hw/xfree86/Makefile
+fi

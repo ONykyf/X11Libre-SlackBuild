@@ -1,0 +1,5 @@
+# Add documentation:
+mkdir -p $PKG/usr/doc/xinput_calibrator-$MODULAR_PACKAGE_VERSION
+cp -a \
+  COPYING* README* NEWS* TODO* ChangeLog Changelog \
+  $PKG/usr/doc/xinput_calibrator-$MODULAR_PACKAGE_VERSION

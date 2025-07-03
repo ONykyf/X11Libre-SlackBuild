@@ -1,0 +1,21 @@
+config() {
+  NEW="$1"
+  NOW="$(dirname $NEW)/$(basename $NEW .new)"
+  OLD="$NOW.old"
+
+  if [ -r $NOW ]; then
+    if [ "$(cat $NOW | md5sum)" = "$(cat $NEW | md5sum)" ]; then # toss the redundant copy
+      rm $NEW
+    else    # If there is no .old, the present copy becomes .old
+      if [ ! -r $OLD ]; then
+        mv $NOW $OLD
+      fi
+      mv $NEW $NOW
+    fi
+  else
+  # If there's no file by that name, mv it over:
+    mv $NEW $NOW
+  fi
+}
+
+config usr/bin/Xnest.new

@@ -1,0 +1,19 @@
+# HOW TO EDIT THIS FILE:
+# The "handy ruler" below makes it easier to edit a package description.  Line
+# up the first '|' above the ':' following the base package name, and the '|'
+# on the right side marks the last column you can put a character in.  You must
+# make exactly 11 lines for the formatting to be correct.  It's also
+# customary to leave one space after the ':'.
+
+       |-----handy-ruler------------------------------------------------------|
+libxcvt: libxcvt (VESA CVT standard modelines library)
+libxcvt:
+libxcvt: libxcvt is a library providing a standalone version of the X server
+libxcvt: implementation of the VESA CVT standard timing modelines generator.
+libxcvt: libxcvt also provides a command line tool "cvt".
+libxcvt:
+libxcvt:
+libxcvt:
+libxcvt:
+libxcvt:
+libxcvt:

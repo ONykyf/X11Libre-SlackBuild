@@ -1,0 +1,19 @@
+# HOW TO EDIT THIS FILE:
+# The "handy ruler" below makes it easier to edit a package description.  Line
+# up the first '|' above the ':' following the base package name, and the '|'
+# on the right side marks the last column you can put a character in.  You must
+# make exactly 11 lines for the formatting to be correct.  It's also
+# customary to leave one space after the ':'.
+
+                 |-----handy-ruler------------------------------------------------------|
+xinput_calibrator: xinput_calibrator (touchscreen calibration program)
+xinput_calibrator:
+xinput_calibrator: Xinput_calibrator is based on a simple calibrator that was proposed on
+xinput_calibrator: the Xorg mailing list. The first release improved upon it by reading
+xinput_calibrator: axis valuators from Xinput, hence making it generic for all
+xinput_calibrator: touchscreen drivers.
+xinput_calibrator:
+xinput_calibrator: For more information about the X.Org Foundation (the providers of the
+xinput_calibrator: X.Org implementation of the X Window System), see their website:
+xinput_calibrator: http://www.x.org
+xinput_calibrator:

@@ -1,0 +1,19 @@
+# HOW TO EDIT THIS FILE:
+# The "handy ruler" below makes it easier to edit a package description.  Line
+# up the first '|' above the ':' following the base package name, and the '|'
+# on the right side marks the last column you can put a character in.  You must
+# make exactly 11 lines for the formatting to be correct.  It's also
+# customary to leave one space after the ':'.
+
+                     |-----handy-ruler------------------------------------------------------|
+xlibre-server-headers: xlibre-server headers (The X server, the core of the X Window System)
+xlibre-server-headers:
+xlibre-server-headers: /usr/include/xorg directory with include files shipped separately.
+xlibre-server-headers:
+xlibre-server-headers:
+xlibre-server-headers:
+xlibre-server-headers:
+xlibre-server-headers: Homepage: https://github.com/X11Libre/xserver
+xlibre-server-headers:
+xlibre-server-headers:
+xlibre-server-headers:

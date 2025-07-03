@@ -1,0 +1,1 @@
+zcat $CWD/patch/xorg-cf-files/Imake.tmpl-binutils-ar-2.36.patch.gz | patch -p1 || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.failed ; continue ; }

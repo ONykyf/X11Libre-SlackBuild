@@ -1,0 +1,23 @@
+configdir() {
+  NEW="$1"
+  NOW="$(dirname $NEW)/$(basename $NEW .new)"
+  OLD="$NOW.old"
+
+  if [ -d $NOW ]; then
+    if [ "$(cat $NOW/* | md5sum)" = "$(cat $NEW/* | md5sum)" ]; then # toss the redundant dir
+      rm -rf $NEW
+    else    # If there is no .old, the present dir becomes .old
+      if [ ! -d $OLD ]; then
+        mv -T $NOW $OLD
+      else
+        rm -rf $NOW
+      fi
+      mv -T $NEW $NOW
+    fi
+  else
+  # If there's no directory by that name, mv it over:
+    mv -T $NEW $NOW
+  fi
+}
+
+configdir usr/include/xorg.new

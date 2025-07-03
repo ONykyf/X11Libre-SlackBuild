@@ -1,0 +1,53 @@
+# Default font paths to be used by the X server:
+DEF_FONTPATH="/usr/share/fonts/misc,/usr/share/fonts/local,/usr/share/fonts/TTF,/usr/share/fonts/OTF,/usr/share/fonts/Type1,/usr/share/fonts/CID,/usr/share/fonts/75dpi/:unscaled,/usr/share/fonts/100dpi/:unscaled,/usr/share/fonts/75dpi,/usr/share/fonts/100dpi,/usr/share/fonts/cyrillic"
+
+export CFLAGS="$SLKCFLAGS"
+export CXXFLAGS="$SLKCFLAGS"
+
+rm -f ${SLACK_X_BUILD_DIR}/${PKGNAME}.configure_failed
+
+mkdir build
+cd build
+meson setup \
+  --prefix=/usr \
+  --libdir=/usr/lib${LIBDIRSUFFIX} \
+  --sysconfdir /etc \
+  --localstatedir /var \
+  --infodir /usr/info \
+  --mandir /usr/man \
+  --libexecdir /usr/libexec \
+  --bindir /usr/bin \
+  --sbindir /usr/sbin \
+  --includedir /usr/include \
+  --datadir /usr/share \
+  --buildtype=release \
+  -D ipv6=true \
+  -D udev=true \
+  -D hal=false \
+  -D dtrace=false \
+  -D libunwind=true \
+  -D systemd_logind=false \
+  -D systemd_notify=false \
+  -D xorg=true \
+  -D xephyr=true \
+  -D glamor=true \
+  -D xnest=true \
+  -D xvfb=true \
+  -D xace=true \
+  -D xcsecurity=true \
+  -D namespace=true \
+  -D xkb_dir='/usr/share/X11/xkb' \
+  -D xkb_output_dir='/var/lib/xkb' \
+  -D int10=x86emu \
+  -D default_font_path="${DEF_FONTPATH}" \
+  .. || touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.configure_failed
+
+cd ..
+
+# -D module_dir="/usr/lib${LIBDIRSUFFIX}/xorg/modules"
+# --with-os-name="Slackware 15.1" \
+# --with-os-vendor="Slackware Linux Project" \
+# -D suid_wrapper=true
+# -D libunwind=true
+# --disable-static
+# --with-pic

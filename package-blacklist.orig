@@ -1,0 +1,49 @@
+# Enter packages to skip (perhaps because they aren't used on
+# this platform) below.  Just the package name -- no version
+# number is needed.
+
+# ARM only packages:
+# They also say in the README for this one that it is not yet ready:
+xf86-video-omap
+
+# Obsolete packages:
+xf86-input-acecad
+xf86-input-aiptek
+xf86-input-joystick
+xf86-input-keyboard
+xf86-input-mouse
+xf86-input-penmount
+xf86-input-void
+xf86-video-apm
+xf86-video-ark
+xf86-video-ast
+xf86-video-chips
+xf86-video-cirrus
+xf86-video-geode
+xf86-video-glint
+xf86-video-i128
+xf86-video-i740
+#xf86-video-neomagic
+xf86-video-nv
+xf86-video-omap
+xf86-video-qxl
+xf86-video-rendition
+xf86-video-s3
+#xf86-video-savage
+xf86-video-siliconmotion
+xf86-video-sis
+xf86-video-sisusb
+xf86-video-tdfx
+xf86-video-tga
+xf86-video-tseng
+xf86-video-v4l
+xf86-video-vboxvideo
+xf86-video-voodoo
+xf86-video-xgi
+xf86-video-xgixp
+xpyb
+
+# CAREFUL NOT TO "SHIP" THE STUFF BELOW IN THE MAIN X PACKAGES DIR!
+
+# We don't want this one, as it causes failure of X with no xorg.conf
+xf86-video-fbdev

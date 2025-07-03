@@ -1,0 +1,11 @@
+for font in *.bdf ; do
+  if grep -Fq 'FAMILY_NAME "' "$font" 2>/dev/null; then
+    family_name="$(grep -F 'FAMILY_NAME "' "$font")"
+    family_name="${family_name%\"}"
+    family_name_otb="$family_name (OTB)"
+    sed -i "s/$family_name/$family_name_otb/" "$font"
+  fi
+  fonttosfnt -b -c -g 2 -m 2 -o "${font/bdf/otb}" "$font"
+done
+mkdir -p $PKG/usr/share/fonts/75dpi
+cp -a -v *.otb $PKG/usr/share/fonts/75dpi

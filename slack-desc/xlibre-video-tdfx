@@ -1,0 +1,19 @@
+# HOW TO EDIT THIS FILE:
+# The "handy ruler" below makes it easier to edit a package description.  Line
+# up the first '|' above the ':' following the base package name, and the '|'
+# on the right side marks the last column you can put a character in.  You must
+# make exactly 11 lines for the formatting to be correct.  It's also
+# customary to leave one space after the ':'.
+
+                 |-----handy-ruler------------------------------------------------------|
+xlibre-video-tdfx: xlibre-video-tdfx (3Dfx video driver for the Xorg X server)
+xlibre-video-tdfx:
+xlibre-video-tdfx: xlibre-video-tdfx is part of X11.
+xlibre-video-tdfx:
+xlibre-video-tdfx:
+xlibre-video-tdfx: Homepage:
+xlibre-video-tdfx:
+xlibre-video-tdfx: https://github.com/X11Libre
+xlibre-video-tdfx:
+xlibre-video-tdfx:
+xlibre-video-tdfx:

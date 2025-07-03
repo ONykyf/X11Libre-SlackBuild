@@ -1,0 +1,1 @@
+cat $CWD/patch/xdm/xdm-greeter.patch | patch -p1 || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.failed ; continue ; }

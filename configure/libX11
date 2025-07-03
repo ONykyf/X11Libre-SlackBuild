@@ -1,0 +1,14 @@
+CFLAGS=$SLKCFLAGS \
+CXXFLAGS=$SLKCFLAGS \
+./configure \
+  --prefix=/usr \
+  --libdir=/usr/lib${LIBDIRSUFFIX} \
+  --docdir=/usr/doc/${PKGNAME}-${MODULAR_PACKAGE_VERSION} \
+  --sysconfdir=/etc \
+  --localstatedir=/var \
+  --infodir=/usr/info \
+  --mandir=/usr/man \
+  --disable-static \
+  --disable-thread-safety-constructor \
+  --enable-year2038 \
+  --build=$ARCH-slackware-linux

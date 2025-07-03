@@ -1,0 +1,9 @@
+# The conf.d directory is in /etc/fonts:
+mkdir -p $PKG/etc/fonts
+mv $PKG/usr/share/fontconfig/conf.d $PKG/etc/fonts
+( cd $PKG/etc/fonts/conf.d
+  for conf in *.conf ; do
+    rm -f $conf
+    ln -sf ../../../usr/share/fontconfig/conf.avail/$conf .
+  done
+)

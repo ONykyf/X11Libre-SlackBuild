@@ -1,0 +1,22 @@
+if [ -x ./configure ]; then
+  CONFIGURE="./configure"
+elif [ -x ./autogen.sh ]; then
+  CONFIGURE="./autogen.sh"
+else
+  echo "ERROR: neither ./configure nor ./autogen.sh found."
+  sleep 5
+  exit 1
+fi
+CFLAGS="$SLKCFLAGS -Wno-error=implicit-function-declaration" \
+CXXFLAGS=$SLKCFLAGS \
+$CONFIGURE \
+  --prefix=/usr \
+  --libdir=/usr/lib${LIBDIRSUFFIX} \
+  --sysconfdir=/etc \
+  --localstatedir=/var \
+  --infodir=/usr/info \
+  --mandir=/usr/man \
+  --docdir=/usr/doc/${PKGNAME}-${MODULAR_PACKAGE_VERSION} \
+  --disable-static \
+  --enable-year2038 \
+  --build=$ARCH-slackware-linux

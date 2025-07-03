@@ -1,0 +1,15 @@
+CFLAGS="$SLKCFLAGS -Wno-error=array-bounds" \
+CXXFLAGS=$SLKCFLAGS \
+mkdir meson-build
+cd meson-build
+meson setup \
+  --prefix=/usr \
+  --libdir=/usr/lib${LIBDIRSUFFIX} \
+  --sysconfdir=/etc \
+  --localstatedir=/var \
+  --infodir=/usr/info \
+  --mandir=/usr/man \
+  -Ddocs=disabled \
+  -Dtests=disabled \
+  -Drunner=disabled \
+  .. || exit 1

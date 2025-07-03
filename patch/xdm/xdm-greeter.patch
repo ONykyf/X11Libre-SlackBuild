@@ -1,0 +1,27 @@
+#  The existing calculation of Y_INC make no allowance for the size of the
+#  inner frame of the input field.  When the input field text height + the
+#  inner frame size exceed the height of the prompt text this results in
+#  misalignment and artefacts being left behind when erasing characters 
+#  with tails (such as 'j').
+#
+#  The following resource settings can be used to reproduce the issue:
+#    xlogin*face:            Helvetica-30
+#    xlogin*promptFace:      Helvetica-16:bold
+#    xlogin*innerFramesWidth: 8
+
+#  This patch resolves both issues.
+#
+#  Author: gary.langshaw@gmail.com
+
+diff -Nurp xdm-1.1.16.orig/greeter/Login.c xdm-1.1.16/greeter/Login.c
+--- xdm-1.1.16.orig/greeter/Login.c	2024-04-05 01:04:33.000000000 +0100
++++ xdm-1.1.16/greeter/Login.c	2024-06-11 15:39:20.596773706 +0100
+@@ -253,7 +253,7 @@ static XtResource resources[] = {
+ #define FAIL_X_INC(w)		F_MAX_WIDTH(fail)
+ #define FAIL_Y_INC(w)		(F_ASCENT(fail) + F_DESCENT(fail))
+ 
+-#define Y_INC(w)	max (TEXT_Y_INC(w), PROMPT_Y_INC(w))
++#define Y_INC(w)	max ((2 * (w)->login.inframeswidth) + TEXT_Y_INC(w), PROMPT_Y_INC(w))
+ 
+ 
+ #define PROMPT_TEXT(w,n) 	((w)->login.prompts[n].promptText)

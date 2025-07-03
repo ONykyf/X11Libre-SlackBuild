@@ -1,0 +1,66 @@
+rm -rf ${SLACK_X_BUILD_DIR}/package-xlibre-server-xnest
+mkdir -p ${SLACK_X_BUILD_DIR}/package-xlibre-server-xnest/usr/bin
+mv $PKG/usr/bin/Xnest ${SLACK_X_BUILD_DIR}/package-xlibre-server-xnest/usr/bin/Xnest.new
+mkdir -p ${SLACK_X_BUILD_DIR}/package-xlibre-server-xnest/usr/man/man1
+mv $PKG/usr/man/man1/Xnest.1.gz ${SLACK_X_BUILD_DIR}/package-xlibre-server-xnest/usr/man/man1
+mkdir -p ${SLACK_X_BUILD_DIR}/package-xlibre-server-xnest/install
+cat $CWD/slack-desc/xlibre-server-xnest > ${SLACK_X_BUILD_DIR}/package-xlibre-server-xnest/install/slack-desc
+cat $CWD/doinst.sh/xlibre-server-xnest > ${SLACK_X_BUILD_DIR}/package-xlibre-server-xnest/install/doinst.sh
+cd ${SLACK_X_BUILD_DIR}/package-xlibre-server-xnest
+/sbin/makepkg -l y -c n ${SLACK_X_BUILD_DIR}/xlibre-server-xnest-${MODULAR_PACKAGE_VERSION}-$ARCH-$BUILD.txz
+
+rm -rf ${SLACK_X_BUILD_DIR}/package-xlibre-server-xvfb
+mkdir -p ${SLACK_X_BUILD_DIR}/package-xlibre-server-xvfb/usr/bin
+mv $PKG/usr/bin/Xvfb ${SLACK_X_BUILD_DIR}/package-xlibre-server-xvfb/usr/bin/Xvfb.new
+mkdir -p ${SLACK_X_BUILD_DIR}/package-xlibre-server-xvfb/usr/man/man1
+mv $PKG/usr/man/man1/Xvfb.1.gz ${SLACK_X_BUILD_DIR}/package-xlibre-server-xvfb/usr/man/man1
+mkdir -p ${SLACK_X_BUILD_DIR}/package-xlibre-server-xvfb/install
+cat $CWD/slack-desc/xlibre-server-xvfb > ${SLACK_X_BUILD_DIR}/package-xlibre-server-xvfb/install/slack-desc
+cat $CWD/doinst.sh/xlibre-server-xvfb > ${SLACK_X_BUILD_DIR}/package-xlibre-server-xvfb/install/doinst.sh
+cd ${SLACK_X_BUILD_DIR}/package-xlibre-server-xvfb
+/sbin/makepkg -l y -c n ${SLACK_X_BUILD_DIR}/xlibre-server-xvfb-${MODULAR_PACKAGE_VERSION}-$ARCH-$BUILD.txz
+
+rm -rf ${SLACK_X_BUILD_DIR}/package-xlibre-server-xephyr
+mkdir -p ${SLACK_X_BUILD_DIR}/package-xlibre-server-xephyr/usr/bin
+mv $PKG/usr/bin/Xephyr ${SLACK_X_BUILD_DIR}/package-xlibre-server-xephyr/usr/bin/Xephyr.new
+mkdir -p ${SLACK_X_BUILD_DIR}/package-xlibre-server-xephyr/usr/man/man1
+mv $PKG/usr/man/man1/Xephyr.1.gz ${SLACK_X_BUILD_DIR}/package-xlibre-server-xephyr/usr/man/man1
+mkdir -p ${SLACK_X_BUILD_DIR}/package-xlibre-server-xephyr/install
+cat $CWD/slack-desc/xlibre-server-xephyr > ${SLACK_X_BUILD_DIR}/package-xlibre-server-xephyr/install/slack-desc
+cat $CWD/doinst.sh/xlibre-server-xephyr > ${SLACK_X_BUILD_DIR}/package-xlibre-server-xephyr/install/doinst.sh
+cd ${SLACK_X_BUILD_DIR}/package-xlibre-server-xephyr
+/sbin/makepkg -l y -c n ${SLACK_X_BUILD_DIR}/xlibre-server-xephyr-${MODULAR_PACKAGE_VERSION}-$ARCH-$BUILD.txz
+
+rm -rf ${SLACK_X_BUILD_DIR}/package-xlibre-server-headers
+mkdir -p ${SLACK_X_BUILD_DIR}/package-xlibre-server-headers/usr/include
+mv $PKG/usr/include/xorg ${SLACK_X_BUILD_DIR}/package-xlibre-server-headers/usr/include/xorg.new
+mkdir -p ${SLACK_X_BUILD_DIR}/package-xlibre-server-headers/install
+cat $CWD/slack-desc/xlibre-server-headers > ${SLACK_X_BUILD_DIR}/package-xlibre-server-headers/install/slack-desc
+cat $CWD/doinst.sh/xlibre-server-headers > ${SLACK_X_BUILD_DIR}/package-xlibre-server-headers/install/doinst.sh
+cd ${SLACK_X_BUILD_DIR}/package-xlibre-server-headers
+/sbin/makepkg -l y -c n ${SLACK_X_BUILD_DIR}/xlibre-server-headers-${MODULAR_PACKAGE_VERSION}-$ARCH-$BUILD.txz
+
+# Build the main xlibre-server package:
+cd $PKG
+mkdir install
+cat $CWD/slack-desc/xlibre-server > install/slack-desc
+cat $CWD/doinst.sh/xlibre-server > install/doinst.sh
+mv usr/bin/Xorg usr/bin/Xorg.new
+/sbin/makepkg -l y -c n ${SLACK_X_BUILD_DIR}/xlibre-server-${MODULAR_PACKAGE_VERSION}-$ARCH-$BUILD.txz
+
+cd ..
+rm -rf $PKG
+
+if [ "$UPGRADE_PACKAGES" = "yes" ]; then
+  /sbin/upgradepkg --install-new ${SLACK_X_BUILD_DIR}/xlibre-server-xnest-${MODULAR_PACKAGE_VERSION}-$ARCH-$BUILD.txz
+  /sbin/upgradepkg --install-new ${SLACK_X_BUILD_DIR}/xlibre-server-xvfb-${MODULAR_PACKAGE_VERSION}-$ARCH-$BUILD.txz
+  /sbin/upgradepkg --install-new ${SLACK_X_BUILD_DIR}/xlibre-server-xephyr-${MODULAR_PACKAGE_VERSION}-$ARCH-$BUILD.txz
+  /sbin/upgradepkg --install-new ${SLACK_X_BUILD_DIR}/xlibre-server-headers-${MODULAR_PACKAGE_VERSION}-$ARCH-$BUILD.txz
+  /sbin/upgradepkg --install-new ${SLACK_X_BUILD_DIR}/xlibre-server-${MODULAR_PACKAGE_VERSION}-$ARCH-$BUILD.txz
+elif [ "$UPGRADE_PACKAGES" = "always" ]; then
+  /sbin/upgradepkg --install-new --reinstall ${SLACK_X_BUILD_DIR}/xlibre-server-xnest-${MODULAR_PACKAGE_VERSION}-$ARCH-$BUILD.txz
+  /sbin/upgradepkg --install-new --reinstall ${SLACK_X_BUILD_DIR}/xlibre-server-xvfb-${MODULAR_PACKAGE_VERSION}-$ARCH-$BUILD.txz
+  /sbin/upgradepkg --install-new --reinstall ${SLACK_X_BUILD_DIR}/xlibre-server-xephyr-${MODULAR_PACKAGE_VERSION}-$ARCH-$BUILD.txz
+  /sbin/upgradepkg --install-new --reinstall ${SLACK_X_BUILD_DIR}/xlibre-server-headers-${MODULAR_PACKAGE_VERSION}-$ARCH-$BUILD.txz
+  /sbin/upgradepkg --install-new --reinstall ${SLACK_X_BUILD_DIR}/xlibre-server-${MODULAR_PACKAGE_VERSION}-$ARCH-$BUILD.txz
+fi

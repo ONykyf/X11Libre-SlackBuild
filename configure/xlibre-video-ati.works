@@ -1,0 +1,22 @@
+rm -f ${SLACK_X_BUILD_DIR}/${PKGNAME}.configure_failed
+
+autoreconf -vfi
+
+CFLAGS=$SLKCFLAGS \
+CXXFLAGS=$SLKCFLAGS \
+./configure \
+  --prefix=/usr \
+  --libdir=/usr/lib${LIBDIRSUFFIX} \
+  --with-xorg-module-dir=/usr/lib${LIBDIRSUFFIX}/xorg/modules/xlibre-$XSHORTVER \
+  --sysconfdir=/etc \
+  --localstatedir=/var \
+  --infodir=/usr/info \
+  --mandir=/usr/man \
+  --docdir=/usr/doc/${PKGNAME}-${MODULAR_PACKAGE_VERSION} \
+  --with-udev-rules-dir=/lib/udev/rules.d \
+  --disable-static \
+  --enable-year2038 \
+  --disable-glamor \
+  --build=$ARCH-slackware-linux \
+  || touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.configure_failed
+
