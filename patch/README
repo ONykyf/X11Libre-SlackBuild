@@ -3,7 +3,7 @@ IMPORTANT!
 
 To fail/exit a script, use this:
 
-[command that fails] || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.failed ; continue ; }
+[command that fails] || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
 
 DO NOT USE THIS:
 

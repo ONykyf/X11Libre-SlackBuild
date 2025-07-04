@@ -1,4 +1,4 @@
 # The X server will eventually create this file, but not before emitting
 # an error shortly after running startx. Making sure the file is created
 # and given correct permissions once we have a filename avoids this.
-cat $CWD/patch/xinit/xinit.create.xserverauthfile.diff | patch -p1 || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.failed ; continue ; }
+cat $CWD/patch/xinit/xinit.create.xserverauthfile.diff | patch -p1 || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }

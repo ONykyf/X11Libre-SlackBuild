@@ -7,4 +7,4 @@ grep -r -l 'miInitializeBackingStore(pScreen);' | while read file ; do
 done
 
 # Patch for xorg-server-1.20.x:
-zcat $CWD/patch/xf86-video-tseng/xf86-video-tseng.xorg-server-1.20.x.diff.gz | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.failed ; continue ; }
+zcat $CWD/patch/xf86-video-tseng/xf86-video-tseng.xorg-server-1.20.x.diff.gz | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }

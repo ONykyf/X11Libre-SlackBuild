@@ -7,4 +7,4 @@ grep -r -l 'miInitializeBackingStore(pScreen);' | while read file ; do
 done
 
 zcat $CWD/patch/xf86-video-voodoo/0001-don-t-use-PCITAG-in-struct-anymore.patch.gz \
-  | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.failed ; continue ; }
+  | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }

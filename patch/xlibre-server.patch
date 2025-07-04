@@ -1,24 +1,24 @@
 # We've used this one forever.
-zcat $CWD/patch/xlibre-server/x11.startwithblackscreen.diff.gz | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.failed ; continue ; }
+zcat $CWD/patch/xlibre-server/x11.startwithblackscreen.diff.gz | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
 
 # Without this patch, combo mouse/keyboard (such as Logitech through unified
 # receiver) may be unable to set the desired keyboard layout.
-zcat $CWD/patch/xlibre-server/xorg-server.combo.mouse.keyboard.layout.patch.gz | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.failed ; continue ; }
+zcat $CWD/patch/xlibre-server/xorg-server.combo.mouse.keyboard.layout.patch.gz | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
 
 # Fix a segfault in xorg-server-1.20.0. Odds are good this will be fixed in
 # the next xorg-server and will no longer apply then.
-zcat $CWD/patch/xlibre-server/fix-nouveau-segfault.diff.gz | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.failed ; continue ; }
+zcat $CWD/patch/xlibre-server/fix-nouveau-segfault.diff.gz | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
 
 # The upstream nouveau developers recommend this. On newer nvidia cards it works
 # better to use the generic modesetting ddx rather than nouveau.
 # Reference: https://bugs.freedesktop.org/show_bug.cgi?id=94844
 # Added here 2018/7.
-zcat $CWD/patch/xlibre-server/0001-xfree86-use-modesetting-driver-by-default-on-GeForce.patch.gz | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.failed ; continue ; }
+zcat $CWD/patch/xlibre-server/0001-xfree86-use-modesetting-driver-by-default-on-GeForce.patch.gz | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
 
 # Only use Intel DDX with pre-gen4 hardware. Newer hardware will the the modesetting driver by default:
-zcat $CWD/patch/xlibre-server/06_use-intel-only-on-pre-gen4.diff.gz | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.failed ; continue ; }
+zcat $CWD/patch/xlibre-server/06_use-intel-only-on-pre-gen4.diff.gz | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
 
 # Patches to provide extended InputClass deninition syntax.
 # Needs regex library.
-cat $CWD/patch/xlibre-server/xserver-libre-xserver-use-regex-for-InputClass.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.failed ; continue ; }
+cat $CWD/patch/xlibre-server/xserver-libre-xserver-use-regex-for-InputClass.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
 
