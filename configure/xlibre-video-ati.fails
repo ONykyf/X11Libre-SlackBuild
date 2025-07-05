@@ -13,7 +13,6 @@ CXXFLAGS=$SLKCFLAGS \
   --infodir=/usr/info \
   --mandir=/usr/man \
   --docdir=/usr/doc/${PKGNAME}-${MODULAR_PACKAGE_VERSION} \
-  --with-udev-rules-dir=/lib/udev/rules.d \
   --disable-static \
   --enable-year2038 \
   --enable-glamor \

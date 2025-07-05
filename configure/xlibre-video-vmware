@@ -1,7 +1,8 @@
 rm -f ${SLACK_X_BUILD_DIR}/${PKGNAME}.configure_failed
 
-autoreconf -vfi
+autoreconf -vfi || touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.configure_failed
 
+[ -r ${SLACK_X_BUILD_DIR}/${PKGNAME}.configure_failed ] || \
 CFLAGS=$SLKCFLAGS \
 CXXFLAGS=$SLKCFLAGS \
 ./configure \
@@ -14,7 +15,6 @@ CXXFLAGS=$SLKCFLAGS \
   --mandir=/usr/man \
   --docdir=/usr/doc/${PKGNAME}-${MODULAR_PACKAGE_VERSION} \
   --disable-static \
-  --enable-glamor \
   --enable-year2038 \
   --build=$ARCH-slackware-linux \
   || touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.configure_failed
