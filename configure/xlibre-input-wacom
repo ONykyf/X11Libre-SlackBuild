@@ -21,6 +21,7 @@ meson setup \
   -D xorg-module-dir="/usr/lib${LIBDIRSUFFIX}/xorg/modules/xlibre-$XSHORTVER" \
   -D xorg-conf-dir='/usr/share/X11/xorg.conf.d' \
   -D udev-rules-dir=/lib/udev/rules.d \
+  -D unittests=disabled \
   .. || touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.configure_failed
 
 cd ..
