@@ -1,7 +1,7 @@
 # X11Libre-SlackBuild
 Slackware-current X11 build tree modified to build X11Libre
 
-You can run x11libre.SlackBuild to rebuild (and by default to upgrade, if UPGRADE_PACKAGE=no is not set) everything. This takes a while to complete, but the dependencies will be certainly satisfied. If Your Slackware is too outdated, it may take two passes (very unlikely, but libSM, libXaw, libXaw3d and libXt needed a second pass to build on one of my boxes). If Your system is more or less up-to-date, You can try to recompile only X servers and drivers. In the latter case just run (keeping the default UPGRADE_PACKAGE=always)
+You can run x11libre.SlackBuild to rebuild (and by default to upgrade, if UPGRADE_PACKAGE=no is not set) the entire X packages set, which will be found in /tmp/x11-build. This takes a while to complete, but the dependencies will be certainly satisfied. If Your Slackware is too outdated, it may take two passes (very unlikely, but libSM, libXaw, libXaw3d and libXt needed a second pass to build on one of my boxes). If Your system is more or less up-to-date, You can try to recompile only X servers and drivers. In the latter case just run (keeping the default UPGRADE_PACKAGE=always)
 
 ./x11libre.SlackBuild xlibre-server
 
