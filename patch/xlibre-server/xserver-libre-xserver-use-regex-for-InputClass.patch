@@ -1,5 +1,14 @@
---- xserver-xlibre-xserver-25.0.0.3/hw/xfree86/common/xf86platformBus.c.orig	2025-07-02 18:44:12.000000000 +0300
-+++ xserver-xlibre-xserver-25.0.0.3/hw/xfree86/common/xf86platformBus.c	2025-07-07 21:51:27.156200442 +0300
+--- xserver-xlibre-xserver-25.0.0.4/hw/xfree86/common/xf86Xinput_priv.h.orig	2025-07-09 09:23:12.958752965 +0300
++++ xserver-xlibre-xserver-25.0.0.4/hw/xfree86/common/xf86Xinput_priv.h	2025-07-09 09:23:38.971312834 +0300
+@@ -22,4 +22,6 @@
+ 
+ void xf86RemoveInputEventDrainCallback(CallbackProcPtr callback, void *param);
+ 
++Bool MatchAttrToken(const char *attr, struct xorg_list *groups);
++
+ #endif /* _XSERVER__XF86XINPUT_H */
+--- xserver-xlibre-xserver-25.0.0.4/hw/xfree86/common/xf86platformBus.c.orig	2025-07-04 18:26:48.000000000 +0300
++++ xserver-xlibre-xserver-25.0.0.4/hw/xfree86/common/xf86platformBus.c	2025-07-09 09:26:48.900879565 +0300
 @@ -37,6 +37,10 @@
  #include <fcntl.h>
  #include <unistd.h>
@@ -11,11 +20,18 @@
  #include "config/hotplug_priv.h"
  #include "dix/screenint_priv.h"
  #include "randr/randrstr_priv.h"
-@@ -176,42 +180,13 @@
-     return TRUE;
+@@ -54,6 +58,7 @@
+ #include "xf86Bus.h"
+ #include "Pci.h"
+ #include "xf86platformBus.h"
++#include "xf86Xinput_priv.h"
+ #include "xf86Config.h"
+ #include "xf86Crtc.h"
+ 
+@@ -177,49 +182,12 @@
  }
  
--static Bool
+ static Bool
 -MatchToken(const char *value, struct xorg_list *patterns,
 -           int (*compare)(const char *, const char *))
 -{
@@ -51,17 +67,10 @@
 -    /* All the entries in the list matched the attribute */
 -    return TRUE;
 -}
-+/*
-+ * Match an attribute against a list of xf86MatchGroup's.
-+ * Return TRUE only if each list entry is successful.
-+ * Defined in xf86Xinput.c.
-+ */
-+extern Bool
-+MatchAttrToken(const char *attr, struct xorg_list *groups);
- 
- static Bool
+-
+-static Bool
  OutputClassMatches(const XF86ConfOutputClassPtr oclass,
-@@ -219,7 +194,7 @@
+                    struct xf86_platform_device *dev)
  {
      char *driver = dev->attribs->driver;
  
@@ -70,8 +79,8 @@
          return FALSE;
  
      return TRUE;
---- xserver-xlibre-xserver-25.0.0.3/hw/xfree86/common/xf86Xinput.c.orig	2025-07-02 18:44:12.000000000 +0300
-+++ xserver-xlibre-xserver-25.0.0.3/hw/xfree86/common/xf86Xinput.c	2025-07-07 21:38:04.032186790 +0300
+--- xserver-xlibre-xserver-25.0.0.4/hw/xfree86/common/xf86Xinput.c.orig	2025-07-04 18:26:48.000000000 +0300
++++ xserver-xlibre-xserver-25.0.0.4/hw/xfree86/common/xf86Xinput.c	2025-07-09 09:21:25.763039617 +0300
 @@ -529,82 +529,115 @@
  #endif
  }
@@ -329,421 +338,8 @@
  
      /* MatchIs* booleans */
      if (iclass->is_keyboard.set &&
---- xserver-xlibre-xserver-25.0.0.3/hw/xfree86/man/xorg.conf.man.orig	2025-07-02 18:44:12.000000000 +0300
-+++ xserver-xlibre-xserver-25.0.0.3/hw/xfree86/man/xorg.conf.man	2025-07-07 18:48:23.811013732 +0300
-@@ -1174,6 +1174,25 @@
- directives. These NoMatch directives match if the subsequent match is not
- met by the device.
- .PP
-+To apply more sophicticated conditions, an entire attribute can be matched
-+against an extended regular expression (see
-+.BR regex (7)
-+):
-+.PP
-+.RS 4
-+.nf
-+.B  "    # product string must start with Experimental
-+.B  "    # and end with Device
-+.B  "    MatchProduct \*qregex:_^Experimental.*Device$_\*q"
-+.fi
-+.RE
-+.PP
-+Such a pattern is prefixed with "regex:", and the next character, which
-+may be arbitrary, is used as a two-side delimiter, i.e. the regular
-+expression starts after it and lasts until its next occurrence, or to
-+the end of the argument, if the delimiting character has not been found
-+again.
-+.PP
- The second type of entry is used to match device types. These entries take a
- boolean argument similar to
- .B Option
---- xserver-xlibre-xserver-25.0.0.3/hw/xfree86/parser/patterns.c.orig	2025-07-07 18:48:23.810013732 +0300
-+++ xserver-xlibre-xserver-25.0.0.3/hw/xfree86/parser/patterns.c	2025-07-07 21:21:06.092169485 +0300
-@@ -0,0 +1,210 @@
-+/*
-+ * Copyright (c) 2025 Oleh Nykyforchyn. All rights reserved.
-+ *
-+ * Permission is hereby granted, free of charge, to any person
-+ * obtaining a copy of this software and associated documentation
-+ * files (the "Software"), to deal in the Software without
-+ * restriction, including without limitation the rights to use,
-+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
-+ * copies of the Software, and to permit persons to whom the
-+ * Software is furnished to do so, subject to the following
-+ * conditions:
-+ *
-+ * The above copyright notice and this permission notice shall be
-+ * included in all copies or substantial portions of the Software.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-+ * OTHER DEALINGS IN THE SOFTWARE.
-+ */
-+
-+#ifdef HAVE_XORG_CONFIG_H
-+#include <xorg-config.h>
-+#endif
-+
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include "misc.h"
-+#include "xf86Parser.h"
-+
-+/*
-+ *  Utilities used by InputClass.c and OutputClass.c
-+ */
-+
-+void
-+xf86freeGroup(xf86MatchGroup *group)
-+{
-+    xf86MatchPattern *pattern, *next_pattern;
-+    xorg_list_for_each_entry_safe(pattern, next_pattern, &group->patterns, entry) {
-+        xorg_list_del(&pattern->entry);
-+        if (pattern->str)
-+            free(pattern->str);
-+#ifdef HAVE_REGEX_H
-+        if ((pattern->mode == MATCH_IS_REGEX) && pattern->regex) {
-+            regfree(pattern->regex);
-+            free(pattern->regex);
-+        }
-+#endif
-+        free(pattern);
-+    }
-+    free(group);
-+}
-+
-+
-+#define LOG_OR '|'
-+#define LOG_AND '&'
-+
-+#define NEG_FLAG '!'
-+
-+#define REGEX_PREFIX "regex:"
-+
-+
-+xf86MatchGroup*
-+xf86createGroup(const char *str, xf86MatchMode pref_mode,
-+             Bool negated)
-+ {
-+    xf86MatchPattern *pattern;
-+    xf86MatchGroup *group;
-+    unsigned n;
-+    static const char sep_or[2]  = { LOG_OR,  '\0' };
-+    static const char sep_and[2] = { LOG_AND, '\0' };
-+
-+    if (!str)
-+        return NULL;
-+
-+    group = malloc(sizeof(*group));
-+    if (!group) return NULL;
-+    xorg_list_init(&group->patterns);
-+    group->is_negated = negated;
-+
-+  again:
-+    /* start new pattern */
-+    if ((pattern = malloc(sizeof(*pattern))) == NULL) {
-+        xf86freeGroup(group);
-+        return NULL;
-+    }
-+    xorg_list_add(&pattern->entry, &group->patterns);
-+
-+    /* Pattern starting with '!' should NOT be matched */
-+    if (*str == NEG_FLAG) {
-+        pattern->is_negated = TRUE;
-+        str++;
-+    }
-+    else
-+        pattern->is_negated = FALSE;
-+
-+    pattern->str = NULL; 
-+#ifdef HAVE_REGEX_H
-+    pattern->regex = NULL;
-+#endif
-+
-+    /* Check if there is a mode prefix */
-+    if (!strncmp(str,REGEX_PREFIX,strlen(REGEX_PREFIX))) {
-+        pattern->mode = MATCH_IS_REGEX;
-+        str += strlen(REGEX_PREFIX);
-+        if (*str) {
-+            char *last;
-+            last = strchr(str+1, *str);
-+            if (last)
-+                n = last-str-1;
-+            else
-+                n = strlen(str+1);
-+            pattern->str = strndup(str+1, n);
-+            *(pattern->str+n) = '\0';
-+            str += n+1;
-+            if (*str) str++;
-+        }
-+    }
-+    else {
-+        n = strcspn(str, sep_or);
-+        if (n > strcspn(str, sep_and)) {
-+            pattern->mode = MATCH_IS_SEQSTR;
-+            pattern->str = malloc(n+2);
-+            if (pattern->str) {
-+                char *s, *d;
-+                strncpy(pattern->str, str, n);
-+                str += n;
-+                *(pattern->str+n) = '\0';
-+                s = d = pattern->str;
-+                n = 0;
-+              next_chunk:
-+                while ((*s) && (*s != LOG_AND)) {
-+                    if (n == -1) {
-+                        *(d++) = '\0';
-+                        n = 0;
-+                    }
-+                    *(d++) = *(s++);
-+                    n++;
-+                }
-+                while ((*s) == LOG_AND) s++;
-+                if (*s) {
-+                    n = -1;
-+                    goto next_chunk;
-+                }
-+                *(++d) = '\0';
-+            }
-+            else
-+                str += n;
-+        }
-+        else {
-+            pattern->mode = pref_mode;
-+            pattern->str = strndup(str, n);
-+            *(pattern->str+n) = '\0';
-+            str += n;
-+        }
-+    }
-+
-+    if (pattern->str == NULL)
-+        pattern->mode = MATCH_IS_INVALID;
-+
-+    if (*str == LOG_OR)
-+        str++;
-+
-+    if (*str)
-+        goto again;
-+
-+    return group;
-+}
-+
-+void
-+xf86printPattern(FILE * cf, const xf86MatchPattern *pattern, Bool not_first)
-+{
-+    if (!pattern) return;
-+    if (not_first)
-+        fprintf(cf, "%c", LOG_OR);
-+    if (pattern->is_negated)
-+        fprintf(cf, "%c", NEG_FLAG);
-+    if (pattern->mode == MATCH_IS_INVALID)
-+        fprintf(cf, "invalid:");
-+    else
-+    if (pattern->mode == MATCH_IS_REGEX) {
-+    /* FIXME: Hope there is no '@' in the pattern */
-+        if (pattern->str)
-+            fprintf(cf, REGEX_PREFIX "@%s@", pattern->str);
-+        else
-+            fprintf(cf, REGEX_PREFIX "@(none)@");
-+    }
-+    else if (pattern->mode == MATCH_IS_SEQSTR) {
-+        Bool after = FALSE;
-+        char *str = pattern->str;
-+        while (*str) {
-+            if (after)
-+                fprintf(cf, "%c", LOG_AND);
-+            fprintf(cf, "%s", str);
-+            str += strlen(str);
-+            str++;
-+            after = TRUE;
-+        }
-+    }
-+    else {
-+        if (pattern->str)
-+            fprintf(cf, "%s", pattern->str);
-+        else
-+            fprintf(cf, "(none)");
-+    }
-+}
---- xserver-xlibre-xserver-25.0.0.3/hw/xfree86/parser/meson.build.orig	2025-07-07 19:45:52.987072366 +0300
-+++ xserver-xlibre-xserver-25.0.0.3/hw/xfree86/parser/meson.build	2025-07-07 20:58:23.189146317 +0300
-@@ -12,6 +12,7 @@
-     'Pointer.c',
-     'Screen.c',
-     'Vendor.c',
-+    'patterns.c',
-     'read.c',
-     'scan.c',
-     'write.c',
---- xserver-xlibre-xserver-25.0.0.3/hw/xfree86/parser/xf86Parser.h.orig	2025-07-02 18:44:12.000000000 +0300
-+++ xserver-xlibre-xserver-25.0.0.3/hw/xfree86/parser/xf86Parser.h	2025-07-07 20:56:04.280143955 +0300
-@@ -67,6 +67,11 @@
- #include "xf86Optrec.h"
- #include "list.h"
- 
-+#include <sys/types.h>
-+#ifdef HAVE_REGEX_H
-+#include <regex.h>
-+#endif
-+
- #define HAVE_PARSER_DECLS
- 
- typedef struct {
-@@ -304,10 +309,32 @@
- 
- typedef struct {
-     struct xorg_list entry;
--    char **values;
-+    struct xorg_list patterns;
-     Bool is_negated;
- } xf86MatchGroup;
- 
-+typedef enum {
-+    MATCH_IS_INVALID,
-+    MATCH_IS_STRCMP,
-+    MATCH_IS_STRCASECMP,
-+    MATCH_IS_STRSTR,
-+    MATCH_IS_STRCASESTR,
-+    MATCH_IS_FILENAME,
-+    MATCH_IS_PATHNAME,
-+    MATCH_IS_SEQSTR,
-+    MATCH_IS_REGEX
-+} xf86MatchMode;
-+
-+typedef struct {
-+    struct xorg_list entry;
-+    xf86MatchMode mode;
-+    Bool is_negated;
-+    char *str;
-+#ifdef HAVE_REGEX_H
-+    regex_t *regex;
-+#endif
-+} xf86MatchPattern;
-+
- typedef struct {
-     GenericListRec list;
-     char *identifier;
---- xserver-xlibre-xserver-25.0.0.3/hw/xfree86/parser/configProcs.h.orig	2025-07-07 20:51:50.652139644 +0300
-+++ xserver-xlibre-xserver-25.0.0.3/hw/xfree86/parser/configProcs.h	2025-07-07 20:55:15.290143123 +0300
-@@ -140,6 +140,15 @@
- void
- xf86freeExtensions(XF86ConfExtensionsPtr ptr);
- 
-+/* pattern.c */
-+void xf86freeGroup(xf86MatchGroup *group);
-+xf86MatchGroup* xf86createGroup(const char *str,
-+                                xf86MatchMode pref_mode,
-+                                Bool negated);
-+void xf86printPattern(FILE * cf,
-+                      const xf86MatchPattern *pattern,
-+                      Bool not_first);
-+
- #ifdef HAVE_XORG_CONFIG_H
- #include <xorg-config.h>
- #endif
---- xserver-xlibre-xserver-25.0.0.3/hw/xfree86/parser/OutputClass.c.orig	2025-07-02 18:44:12.000000000 +0300
-+++ xserver-xlibre-xserver-25.0.0.3/hw/xfree86/parser/OutputClass.c	2025-07-07 20:21:04.985108269 +0300
-@@ -51,7 +51,6 @@
- 
-     while (ptr) {
-         xf86MatchGroup *group, *next;
--        char **list;
- 
-         TestFree(ptr->identifier);
-         TestFree(ptr->comment);
-@@ -59,13 +58,8 @@
-         TestFree(ptr->modulepath);
- 
-         xorg_list_for_each_entry_safe(group, next, &ptr->match_driver, entry) {
--            for (list = group->values; *list; list++) {
--                free(*list);
--                *list = NULL;
--            }
-             xorg_list_del(&group->entry);
--            free(group);
--            group = NULL;
-+            xf86freeGroup(group);
-         }
- 
-         xf86optionListFree(ptr->option_lst);
-@@ -78,23 +72,12 @@
- 
- #define CLEANUP xf86freeOutputClassList
- 
--#define TOKEN_SEP "|"
--
--static void
--add_group_entry(struct xorg_list *head, char **values)
--{
--    xf86MatchGroup *group = calloc(1, sizeof(xf86MatchGroup));
--    if (group) {
--        group->values = values;
--        xorg_list_add(&group->entry, head);
--    }
--}
--
- XF86ConfOutputClassPtr
- xf86parseOutputClassSection(void)
- {
-     int has_ident = FALSE;
-     int token;
-+    xf86MatchGroup *group;
- 
-     parsePrologue(XF86ConfOutputClassPtr, XF86ConfOutputClassRec)
- 
-@@ -141,9 +124,12 @@
-         case MATCH_DRIVER:
-             if (xf86getSubToken(&(ptr->comment)) != XF86_TOKEN_STRING)
-                 Error(QUOTE_MSG, "MatchDriver");
--            add_group_entry(&ptr->match_driver,
--                            xstrtokenize(xf86_lex_val.str, TOKEN_SEP));
--            free(xf86_lex_val.str);
-+            else {
-+                group = xf86createGroup(xf86_lex_val.str, MATCH_IS_STRCMP, FALSE);
-+                if (group)
-+                    xorg_list_add(&group->entry, &ptr->match_driver);
-+                free(xf86_lex_val.str);
-+            }
-             break;
-         case EOF_TOKEN:
-             Error(UNEXPECTED_EOF_MSG);
-@@ -163,11 +149,13 @@
- 
-     return ptr;
- }
-+
- void
- xf86printOutputClassSection(FILE * cf, XF86ConfOutputClassPtr ptr)
- {
-     const xf86MatchGroup *group;
--    char *const *cur;
-+    const xf86MatchPattern *pattern;
-+    Bool not_first;
- 
-     while (ptr) {
-         fprintf(cf, "Section \"OutputClass\"\n");
-@@ -180,9 +168,11 @@
- 
-         xorg_list_for_each_entry(group, &ptr->match_driver, entry) {
-             fprintf(cf, "\tMatchDriver     \"");
--            for (cur = group->values; *cur; cur++)
--                fprintf(cf, "%s%s", cur == group->values ? "" : TOKEN_SEP,
--                        *cur);
-+            not_first = FALSE;
-+            xorg_list_for_each_entry(pattern, &group->patterns, entry) {
-+                xf86printPattern(cf, pattern, not_first);
-+                not_first = TRUE;
-+            }
-             fprintf(cf, "\"\n");
-         }
- 
---- xserver-xlibre-xserver-25.0.0.3/hw/xfree86/parser/InputClass.c.orig	2025-07-02 18:44:12.000000000 +0300
-+++ xserver-xlibre-xserver-25.0.0.3/hw/xfree86/parser/InputClass.c	2025-07-07 20:20:48.179107983 +0300
+--- xserver-xlibre-xserver-25.0.0.4/hw/xfree86/parser/InputClass.c.orig	2025-07-04 18:26:48.000000000 +0300
++++ xserver-xlibre-xserver-25.0.0.4/hw/xfree86/parser/InputClass.c	2025-07-09 09:21:25.766129573 +0300
 @@ -77,64 +77,45 @@
  
      while (ptr) {
@@ -1174,8 +770,422 @@
          if (ptr->is_keyboard.set)
              fprintf(cf, "\tIsKeyboard      \"%s\"\n",
                      ptr->is_keyboard.val ? "yes" : "no");
---- xserver-xlibre-xserver-25.0.0.3/include/meson.build.orig	2025-07-02 18:44:12.000000000 +0300
-+++ xserver-xlibre-xserver-25.0.0.3/include/meson.build	2025-07-07 18:48:23.811013732 +0300
+--- xserver-xlibre-xserver-25.0.0.4/hw/xfree86/parser/configProcs.h.orig	2025-07-04 18:26:48.000000000 +0300
++++ xserver-xlibre-xserver-25.0.0.4/hw/xfree86/parser/configProcs.h	2025-07-09 09:21:25.765482881 +0300
+@@ -140,6 +140,15 @@
+ void
+ xf86freeExtensions(XF86ConfExtensionsPtr ptr);
+ 
++/* pattern.c */
++void xf86freeGroup(xf86MatchGroup *group);
++xf86MatchGroup* xf86createGroup(const char *str,
++                                xf86MatchMode pref_mode,
++                                Bool negated);
++void xf86printPattern(FILE * cf,
++                      const xf86MatchPattern *pattern,
++                      Bool not_first);
++
+ #ifdef HAVE_XORG_CONFIG_H
+ #include <xorg-config.h>
+ #endif
+--- xserver-xlibre-xserver-25.0.0.4/hw/xfree86/parser/OutputClass.c.orig	2025-07-04 18:26:48.000000000 +0300
++++ xserver-xlibre-xserver-25.0.0.4/hw/xfree86/parser/OutputClass.c	2025-07-09 09:21:25.765784268 +0300
+@@ -51,7 +51,6 @@
+ 
+     while (ptr) {
+         xf86MatchGroup *group, *next;
+-        char **list;
+ 
+         TestFree(ptr->identifier);
+         TestFree(ptr->comment);
+@@ -59,13 +58,8 @@
+         TestFree(ptr->modulepath);
+ 
+         xorg_list_for_each_entry_safe(group, next, &ptr->match_driver, entry) {
+-            for (list = group->values; *list; list++) {
+-                free(*list);
+-                *list = NULL;
+-            }
+             xorg_list_del(&group->entry);
+-            free(group);
+-            group = NULL;
++            xf86freeGroup(group);
+         }
+ 
+         xf86optionListFree(ptr->option_lst);
+@@ -78,23 +72,12 @@
+ 
+ #define CLEANUP xf86freeOutputClassList
+ 
+-#define TOKEN_SEP "|"
+-
+-static void
+-add_group_entry(struct xorg_list *head, char **values)
+-{
+-    xf86MatchGroup *group = calloc(1, sizeof(xf86MatchGroup));
+-    if (group) {
+-        group->values = values;
+-        xorg_list_add(&group->entry, head);
+-    }
+-}
+-
+ XF86ConfOutputClassPtr
+ xf86parseOutputClassSection(void)
+ {
+     int has_ident = FALSE;
+     int token;
++    xf86MatchGroup *group;
+ 
+     parsePrologue(XF86ConfOutputClassPtr, XF86ConfOutputClassRec)
+ 
+@@ -141,9 +124,12 @@
+         case MATCH_DRIVER:
+             if (xf86getSubToken(&(ptr->comment)) != XF86_TOKEN_STRING)
+                 Error(QUOTE_MSG, "MatchDriver");
+-            add_group_entry(&ptr->match_driver,
+-                            xstrtokenize(xf86_lex_val.str, TOKEN_SEP));
+-            free(xf86_lex_val.str);
++            else {
++                group = xf86createGroup(xf86_lex_val.str, MATCH_IS_STRCMP, FALSE);
++                if (group)
++                    xorg_list_add(&group->entry, &ptr->match_driver);
++                free(xf86_lex_val.str);
++            }
+             break;
+         case EOF_TOKEN:
+             Error(UNEXPECTED_EOF_MSG);
+@@ -163,11 +149,13 @@
+ 
+     return ptr;
+ }
++
+ void
+ xf86printOutputClassSection(FILE * cf, XF86ConfOutputClassPtr ptr)
+ {
+     const xf86MatchGroup *group;
+-    char *const *cur;
++    const xf86MatchPattern *pattern;
++    Bool not_first;
+ 
+     while (ptr) {
+         fprintf(cf, "Section \"OutputClass\"\n");
+@@ -180,9 +168,11 @@
+ 
+         xorg_list_for_each_entry(group, &ptr->match_driver, entry) {
+             fprintf(cf, "\tMatchDriver     \"");
+-            for (cur = group->values; *cur; cur++)
+-                fprintf(cf, "%s%s", cur == group->values ? "" : TOKEN_SEP,
+-                        *cur);
++            not_first = FALSE;
++            xorg_list_for_each_entry(pattern, &group->patterns, entry) {
++                xf86printPattern(cf, pattern, not_first);
++                not_first = TRUE;
++            }
+             fprintf(cf, "\"\n");
+         }
+ 
+--- xserver-xlibre-xserver-25.0.0.4/hw/xfree86/parser/xf86Parser.h.orig	2025-07-04 18:26:48.000000000 +0300
++++ xserver-xlibre-xserver-25.0.0.4/hw/xfree86/parser/xf86Parser.h	2025-07-09 09:21:25.765187501 +0300
+@@ -67,6 +67,11 @@
+ #include "xf86Optrec.h"
+ #include "list.h"
+ 
++#include <sys/types.h>
++#ifdef HAVE_REGEX_H
++#include <regex.h>
++#endif
++
+ #define HAVE_PARSER_DECLS
+ 
+ typedef struct {
+@@ -304,10 +309,32 @@
+ 
+ typedef struct {
+     struct xorg_list entry;
+-    char **values;
++    struct xorg_list patterns;
+     Bool is_negated;
+ } xf86MatchGroup;
+ 
++typedef enum {
++    MATCH_IS_INVALID,
++    MATCH_IS_STRCMP,
++    MATCH_IS_STRCASECMP,
++    MATCH_IS_STRSTR,
++    MATCH_IS_STRCASESTR,
++    MATCH_IS_FILENAME,
++    MATCH_IS_PATHNAME,
++    MATCH_IS_SEQSTR,
++    MATCH_IS_REGEX
++} xf86MatchMode;
++
++typedef struct {
++    struct xorg_list entry;
++    xf86MatchMode mode;
++    Bool is_negated;
++    char *str;
++#ifdef HAVE_REGEX_H
++    regex_t *regex;
++#endif
++} xf86MatchPattern;
++
+ typedef struct {
+     GenericListRec list;
+     char *identifier;
+--- xserver-xlibre-xserver-25.0.0.4/hw/xfree86/parser/patterns.c.orig	2025-07-09 09:21:25.764328482 +0300
++++ xserver-xlibre-xserver-25.0.0.4/hw/xfree86/parser/patterns.c	2025-07-09 09:21:25.764328482 +0300
+@@ -0,0 +1,211 @@
++/*
++ * Copyright (c) 2025 Oleh Nykyforchyn. All rights reserved.
++ *
++ * Permission is hereby granted, free of charge, to any person
++ * obtaining a copy of this software and associated documentation
++ * files (the "Software"), to deal in the Software without
++ * restriction, including without limitation the rights to use,
++ * copy, modify, merge, publish, distribute, sublicense, and/or sell
++ * copies of the Software, and to permit persons to whom the
++ * Software is furnished to do so, subject to the following
++ * conditions:
++ *
++ * The above copyright notice and this permission notice shall be
++ * included in all copies or substantial portions of the Software.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
++ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
++ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
++ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
++ * OTHER DEALINGS IN THE SOFTWARE.
++ */
++
++#ifdef HAVE_XORG_CONFIG_H
++#include <xorg-config.h>
++#endif
++
++#include <stdio.h>
++#include <stdlib.h>
++#include "misc.h"
++#include "xf86Parser.h"
++#include "configProcs.h"
++
++/*
++ *  Utilities used by InputClass.c and OutputClass.c
++ */
++
++void
++xf86freeGroup(xf86MatchGroup *group)
++{
++    xf86MatchPattern *pattern, *next_pattern;
++    xorg_list_for_each_entry_safe(pattern, next_pattern, &group->patterns, entry) {
++        xorg_list_del(&pattern->entry);
++        if (pattern->str)
++            free(pattern->str);
++#ifdef HAVE_REGEX_H
++        if ((pattern->mode == MATCH_IS_REGEX) && pattern->regex) {
++            regfree(pattern->regex);
++            free(pattern->regex);
++        }
++#endif
++        free(pattern);
++    }
++    free(group);
++}
++
++
++#define LOG_OR '|'
++#define LOG_AND '&'
++
++#define NEG_FLAG '!'
++
++#define REGEX_PREFIX "regex:"
++
++
++xf86MatchGroup*
++xf86createGroup(const char *str, xf86MatchMode pref_mode,
++             Bool negated)
++ {
++    xf86MatchPattern *pattern;
++    xf86MatchGroup *group;
++    unsigned n;
++    static const char sep_or[2]  = { LOG_OR,  '\0' };
++    static const char sep_and[2] = { LOG_AND, '\0' };
++
++    if (!str)
++        return NULL;
++
++    group = malloc(sizeof(*group));
++    if (!group) return NULL;
++    xorg_list_init(&group->patterns);
++    group->is_negated = negated;
++
++  again:
++    /* start new pattern */
++    if ((pattern = malloc(sizeof(*pattern))) == NULL) {
++        xf86freeGroup(group);
++        return NULL;
++    }
++    xorg_list_add(&pattern->entry, &group->patterns);
++
++    /* Pattern starting with '!' should NOT be matched */
++    if (*str == NEG_FLAG) {
++        pattern->is_negated = TRUE;
++        str++;
++    }
++    else
++        pattern->is_negated = FALSE;
++
++    pattern->str = NULL; 
++#ifdef HAVE_REGEX_H
++    pattern->regex = NULL;
++#endif
++
++    /* Check if there is a mode prefix */
++    if (!strncmp(str,REGEX_PREFIX,strlen(REGEX_PREFIX))) {
++        pattern->mode = MATCH_IS_REGEX;
++        str += strlen(REGEX_PREFIX);
++        if (*str) {
++            char *last;
++            last = strchr(str+1, *str);
++            if (last)
++                n = last-str-1;
++            else
++                n = strlen(str+1);
++            pattern->str = strndup(str+1, n);
++            *(pattern->str+n) = '\0';
++            str += n+1;
++            if (*str) str++;
++        }
++    }
++    else {
++        n = strcspn(str, sep_or);
++        if (n > strcspn(str, sep_and)) {
++            pattern->mode = MATCH_IS_SEQSTR;
++            pattern->str = malloc(n+2);
++            if (pattern->str) {
++                char *s, *d;
++                strncpy(pattern->str, str, n);
++                str += n;
++                *(pattern->str+n) = '\0';
++                s = d = pattern->str;
++                n = 0;
++              next_chunk:
++                while ((*s) && (*s != LOG_AND)) {
++                    if (n == -1) {
++                        *(d++) = '\0';
++                        n = 0;
++                    }
++                    *(d++) = *(s++);
++                    n++;
++                }
++                while ((*s) == LOG_AND) s++;
++                if (*s) {
++                    n = -1;
++                    goto next_chunk;
++                }
++                *(++d) = '\0';
++            }
++            else
++                str += n;
++        }
++        else {
++            pattern->mode = pref_mode;
++            pattern->str = strndup(str, n);
++            *(pattern->str+n) = '\0';
++            str += n;
++        }
++    }
++
++    if (pattern->str == NULL)
++        pattern->mode = MATCH_IS_INVALID;
++
++    if (*str == LOG_OR)
++        str++;
++
++    if (*str)
++        goto again;
++
++    return group;
++}
++
++void
++xf86printPattern(FILE * cf, const xf86MatchPattern *pattern, Bool not_first)
++{
++    if (!pattern) return;
++    if (not_first)
++        fprintf(cf, "%c", LOG_OR);
++    if (pattern->is_negated)
++        fprintf(cf, "%c", NEG_FLAG);
++    if (pattern->mode == MATCH_IS_INVALID)
++        fprintf(cf, "invalid:");
++    else
++    if (pattern->mode == MATCH_IS_REGEX) {
++    /* FIXME: Hope there is no '@' in the pattern */
++        if (pattern->str)
++            fprintf(cf, REGEX_PREFIX "@%s@", pattern->str);
++        else
++            fprintf(cf, REGEX_PREFIX "@(none)@");
++    }
++    else if (pattern->mode == MATCH_IS_SEQSTR) {
++        Bool after = FALSE;
++        char *str = pattern->str;
++        while (*str) {
++            if (after)
++                fprintf(cf, "%c", LOG_AND);
++            fprintf(cf, "%s", str);
++            str += strlen(str);
++            str++;
++            after = TRUE;
++        }
++    }
++    else {
++        if (pattern->str)
++            fprintf(cf, "%s", pattern->str);
++        else
++            fprintf(cf, "(none)");
++    }
++}
+--- xserver-xlibre-xserver-25.0.0.4/hw/xfree86/parser/meson.build.orig	2025-07-04 18:26:48.000000000 +0300
++++ xserver-xlibre-xserver-25.0.0.4/hw/xfree86/parser/meson.build	2025-07-09 09:21:25.764715257 +0300
+@@ -12,6 +12,7 @@
+     'Pointer.c',
+     'Screen.c',
+     'Vendor.c',
++    'patterns.c',
+     'read.c',
+     'scan.c',
+     'write.c',
+--- xserver-xlibre-xserver-25.0.0.4/hw/xfree86/man/xorg.conf.man.orig	2025-07-04 18:26:48.000000000 +0300
++++ xserver-xlibre-xserver-25.0.0.4/hw/xfree86/man/xorg.conf.man	2025-07-09 09:21:25.763717380 +0300
+@@ -1174,6 +1174,25 @@
+ directives. These NoMatch directives match if the subsequent match is not
+ met by the device.
+ .PP
++To apply more sophicticated conditions, an entire attribute can be matched
++against an extended regular expression (see
++.BR regex (7)
++):
++.PP
++.RS 4
++.nf
++.B  "    # product string must start with Experimental
++.B  "    # and end with Device
++.B  "    MatchProduct \*qregex:_^Experimental.*Device$_\*q"
++.fi
++.RE
++.PP
++Such a pattern is prefixed with "regex:", and the next character, which
++may be arbitrary, is used as a two-side delimiter, i.e. the regular
++expression starts after it and lasts until its next occurrence, or to
++the end of the argument, if the delimiting character has not been found
++again.
++.PP
+ The second type of entry is used to match device types. These entries take a
+ boolean argument similar to
+ .B Option
+--- xserver-xlibre-xserver-25.0.0.4/include/meson.build.orig	2025-07-04 18:26:48.000000000 +0300
++++ xserver-xlibre-xserver-25.0.0.4/include/meson.build	2025-07-09 09:21:25.766650987 +0300
 @@ -132,6 +132,7 @@
  conf_data.set('HAVE_FNMATCH_H', cc.has_header('fnmatch.h') ? '1' : false)
  conf_data.set('HAVE_LINUX_AGPGART_H', cc.has_header('linux/agpgart.h') ? '1' : false)
