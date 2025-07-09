@@ -148,7 +148,7 @@ no_usr_share_doc() {
   #  for x_source_dir in proto data util xcb lib app doc xserver driver font ; do
   # xlibre-server is built twice due to a circular dependency on input-libinput in xlibre-driver
   for x_source_dir in proto data util xcb lib app doc xlibre-server xlibre-driver xlibre-server font ; do
-# for x_source_dir in xlibre-server xlibre-driver xlibre-server ; do
+#  for x_source_dir xlibre-server in xlibre-driver xlibre-server ; do
     # See if $1 is a source directory like "lib":
     if [ ! -z "$1" ]; then
       if [ ! "$1" = "${x_source_dir}" ]; then
@@ -306,11 +306,13 @@ no_usr_share_doc() {
         rmdir --verbose $PKG/usr/doc/${PKGNAME}-$MODULAR_PACKAGE_VERSION 2> /dev/null
 
         # Strip binaries:
-        ( cd $PKG
-          find . | xargs file | grep "executable" | grep ELF | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null
-          find . | xargs file | grep "shared object" | grep ELF | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null
-          find . | xargs file | grep "current ar archive" | grep ELF | cut -f 1 -d : | xargs strip -g 2> /dev/null
-        )
+        if ! grep -wq "^$PKGNAME" ${CWD}/nostrip ; then
+          ( cd $PKG
+            find . | xargs file | grep "executable" | grep ELF | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null
+            find . | xargs file | grep "shared object" | grep ELF | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null
+            find . | xargs file | grep "current ar archive" | grep ELF | cut -f 1 -d : | xargs strip -g 2> /dev/null
+          )
+        fi
 
         # Don't ship .la files:
         rm -f $PKG/{,usr/}lib${LIBDIRSUFFIX}/*.la
