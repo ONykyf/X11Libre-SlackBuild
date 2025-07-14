@@ -1,7 +1,7 @@
 # Default font paths to be used by the X server:
 DEF_FONTPATH="/usr/share/fonts/misc,/usr/share/fonts/local,/usr/share/fonts/TTF,/usr/share/fonts/OTF,/usr/share/fonts/Type1,/usr/share/fonts/CID,/usr/share/fonts/75dpi/:unscaled,/usr/share/fonts/100dpi/:unscaled,/usr/share/fonts/75dpi,/usr/share/fonts/100dpi,/usr/share/fonts/cyrillic"
 
-export CFLAGS="$SLKCFLAGS -O0 -ggdb3"
+export CFLAGS="$SLKCFLAGS"
 export CXXFLAGS="$SLKCFLAGS"
 
 rm -f ${SLACK_X_BUILD_DIR}/${PKGNAME}.configure_failed
@@ -25,7 +25,7 @@ meson setup \
   -D udev=true \
   -D hal=false \
   -D dtrace=false \
-  -D libunwind=true \
+  -D libunwind=false \
   -D systemd_logind=false \
   -D systemd_notify=false \
   -D xorg=true \

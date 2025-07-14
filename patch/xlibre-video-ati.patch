@@ -1,0 +1,3 @@
+# Remove destroying pixmap twice:
+zcat $CWD/patch/xlibre-video-ati/xlibre-video-ati-no-double-destroy-pixmap.patch.gz | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+

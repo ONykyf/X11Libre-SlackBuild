@@ -147,8 +147,8 @@ no_usr_share_doc() {
   # You can build Xorg as well
   #  for x_source_dir in proto data util xcb lib app doc xserver driver font ; do
   # xlibre-server is built twice due to a circular dependency on input-libinput in xlibre-driver
-  for x_source_dir in proto data util xcb lib app doc xlibre-server xlibre-driver xlibre-server font ; do
-#  for x_source_dir xlibre-server in xlibre-driver xlibre-server ; do
+#  for x_source_dir in proto data util xcb lib app doc xlibre-server xlibre-driver xlibre-server font ; do
+  for x_source_dir in xlibre-driver xlibre-server ; do
     # See if $1 is a source directory like "lib":
     if [ ! -z "$1" ]; then
       if [ ! "$1" = "${x_source_dir}" ]; then

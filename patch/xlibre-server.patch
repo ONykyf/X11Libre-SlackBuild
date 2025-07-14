@@ -22,3 +22,7 @@ zcat $CWD/patch/xlibre-server/06_use-intel-only-on-pre-gen4.diff.gz | patch -p1 
 # Needs regex library.
 cat $CWD/patch/xlibre-server/xserver-libre-xserver-use-regex-for-InputClass.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
 
+# Make glamor work on nvidia.
+cat $CWD/patch/xlibre-server/glamor_Use_EGL_LINUX_DMA_BUF_EXT_to_create_GBM_bo_EGLImages.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+
+
