@@ -1,4 +1,5 @@
 # If a package is listed here, its binaries will not be stripped.
 
 xlibre-server
-#xlibre-video-ati
+xlibre-video-ati
+xlibre-video-intel

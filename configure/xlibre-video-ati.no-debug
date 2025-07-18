@@ -1,14 +1,10 @@
-# xf86-video-intel requires SSE2 instructions on 32-bit x86:
-ALTCFLAGS="$SLKCFLAGS"
-case "$( uname -m )" in
-  i?86) ALTCFLAGS="-O2 -march=i686 -mtune=i686 -msse2" ; PKGARCH=i686 ;;
-esac
-
 rm -f ${SLACK_X_BUILD_DIR}/${PKGNAME}.configure_failed
 
-CFLAGS="$SLKCFLAGS -O0 -ggdb3" \
-CXXFLAGS="$ALTCFLAGS" \
-./autogen.sh \
+autoreconf -vfi
+
+CFLAGS=$SLKCFLAGS \
+CXXFLAGS=$SLKCFLAGS \
+./configure \
   --prefix=/usr \
   --libdir=/usr/lib${LIBDIRSUFFIX} \
   --with-xorg-module-dir=/usr/lib${LIBDIRSUFFIX}/xorg/modules/xlibre-$XSHORTVER \
@@ -18,9 +14,8 @@ CXXFLAGS="$ALTCFLAGS" \
   --mandir=/usr/man \
   --docdir=/usr/doc/${PKGNAME}-${MODULAR_PACKAGE_VERSION} \
   --disable-static \
-  --enable-kms-only \
-  --enable-uxa \
-  --with-default-dri=3 \
   --enable-year2038 \
+  --enable-glamor \
   --build=$ARCH-slackware-linux \
   || touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.configure_failed
+

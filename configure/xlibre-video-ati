@@ -2,7 +2,7 @@ rm -f ${SLACK_X_BUILD_DIR}/${PKGNAME}.configure_failed
 
 autoreconf -vfi
 
-CFLAGS=$SLKCFLAGS \
+CFLAGS="$SLKCFLAGS -O0 -ggdb3" \
 CXXFLAGS=$SLKCFLAGS \
 ./configure \
   --prefix=/usr \

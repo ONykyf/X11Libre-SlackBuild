@@ -6,7 +6,7 @@ esac
 
 rm -f ${SLACK_X_BUILD_DIR}/${PKGNAME}.configure_failed
 
-CFLAGS="$SLKCFLAGS -O0 -ggdb3" \
+CFLAGS="$ALTCFLAGS" \
 CXXFLAGS="$ALTCFLAGS" \
 ./autogen.sh \
   --prefix=/usr \
