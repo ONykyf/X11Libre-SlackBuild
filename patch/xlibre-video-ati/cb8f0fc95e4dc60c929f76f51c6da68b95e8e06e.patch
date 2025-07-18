@@ -1,0 +1,57 @@
+From cb8f0fc95e4dc60c929f76f51c6da68b95e8e06e Mon Sep 17 00:00:00 2001
+From: "Enrico Weigelt, metux IT consult" <info@metux.net>
+Date: Mon, 14 Jul 2025 21:59:50 +0200
+Subject: [PATCH] drop support for xserver < 1.16.99.901
+
+Signed-off-by: Enrico Weigelt, metux IT consult <info@metux.net>
+---
+ src/radeon.h     |  6 +-----
+ src/radeon_kms.c | 10 +---------
+ 2 files changed, 2 insertions(+), 14 deletions(-)
+
+diff --git a/src/radeon.h b/src/radeon.h
+index 6d1d21ee..d8a17516 100644
+--- a/src/radeon.h
++++ b/src/radeon.h
+@@ -681,11 +681,7 @@ Bool radeon_dri3_screen_init(ScreenPtr screen);
+ /* radeon_kms.c */
+ Bool radeon_scanout_do_update(xf86CrtcPtr xf86_crtc, int scanout_id,
+ 			      PixmapPtr src_pix, BoxRec extents);
+-void RADEONWindowExposures_oneshot(WindowPtr pWin, RegionPtr pRegion
+-#if XORG_VERSION_CURRENT < XORG_VERSION_NUMERIC(1,16,99,901,0)
+-				   , RegionPtr pBSRegion
+-#endif
+-				   );
++void RADEONWindowExposures_oneshot(WindowPtr pWin, RegionPtr pRegion);
+ 
+ /* radeon_present.c */
+ Bool radeon_present_screen_init(ScreenPtr screen);
+diff --git a/src/radeon_kms.c b/src/radeon_kms.c
+index 8b4d2dd8..fcdcfed3 100644
+--- a/src/radeon_kms.c
++++ b/src/radeon_kms.c
+@@ -1734,11 +1734,7 @@ static Bool RADEONCreateWindow_oneshot(WindowPtr pWin)
+ }
+ 
+ /* When the root window is mapped, set the initial modes */
+-void RADEONWindowExposures_oneshot(WindowPtr pWin, RegionPtr pRegion
+-#if XORG_VERSION_CURRENT < XORG_VERSION_NUMERIC(1,16,99,901,0)
+-				   , RegionPtr pBSRegion
+-#endif
+-				   )
++void RADEONWindowExposures_oneshot(WindowPtr pWin, RegionPtr pRegion)
+ {
+     ScreenPtr pScreen = pWin->drawable.pScreen;
+     ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
+@@ -1748,11 +1744,7 @@ void RADEONWindowExposures_oneshot(WindowPtr pWin, RegionPtr pRegion
+ 	ErrorF("%s called for non-root window %p\n", __func__, pWin);
+ 
+     pScreen->WindowExposures = info->WindowExposures;
+-#if XORG_VERSION_CURRENT < XORG_VERSION_NUMERIC(1,16,99,901,0)
+-    pScreen->WindowExposures(pWin, pRegion, pBSRegion);
+-#else
+     pScreen->WindowExposures(pWin, pRegion);
+-#endif
+ 
+     radeon_finish(pScrn, info->front_buffer);
+     drmmode_set_desired_modes(pScrn, &info->drmmode, TRUE);

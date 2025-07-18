@@ -1,3 +1,15 @@
+cat $CWD/patch/xlibre-video-ati/2f8c36b9f4a69af4e1e913005b6a351c6622db30.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+cat $CWD/patch/xlibre-video-ati/e23e972bf70ac469039dcf897e47ef3a28ac3b6c.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+cat $CWD/patch/xlibre-video-ati/cb8f0fc95e4dc60c929f76f51c6da68b95e8e06e.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+cat $CWD/patch/xlibre-video-ati/46efa58df43d8a935cdf5bd793452556f9134ea2.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+cat $CWD/patch/xlibre-video-ati/aa3c50960e82cc30a0be4aa91afe9c52b61933c8.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+cat $CWD/patch/xlibre-video-ati/667495e3ee9b6853aedaee206826f0b659ff28b8.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+cat $CWD/patch/xlibre-video-ati/43438649d0472b254cdc45f2fb6f8f16aa4bd9e2.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+
 # Remove destroying pixmap twice:
 zcat $CWD/patch/xlibre-video-ati/xlibre-video-ati-no-double-destroy-pixmap.patch.gz | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+
+# KMS doesn't need to flush glamor:
+zcat $CWD/patch/xlibre-video-ati/xlibre-video-ati-dont-flush-destroyed-glamor.patch.gz | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+
 

@@ -1,0 +1,93 @@
+From e23e972bf70ac469039dcf897e47ef3a28ac3b6c Mon Sep 17 00:00:00 2001
+From: "Enrico Weigelt, metux IT consult" <info@metux.net>
+Date: Mon, 14 Jul 2025 21:55:43 +0200
+Subject: [PATCH] drop support for Xserver < 1.15.99
+
+Signed-off-by: Enrico Weigelt, metux IT consult <info@metux.net>
+---
+ src/drmmode_display.c | 12 ------------
+ src/radeon_glamor.c   |  9 ---------
+ src/radeon_probe.c    |  2 --
+ 3 files changed, 23 deletions(-)
+
+diff --git a/src/drmmode_display.c b/src/drmmode_display.c
+index 7f101ae0..07847105 100644
+--- a/src/drmmode_display.c
++++ b/src/drmmode_display.c
+@@ -672,12 +672,7 @@ drmmode_handle_transform(xf86CrtcPtr crtc)
+ {
+ 	Bool ret;
+ 
+-#if XORG_VERSION_CURRENT >= XORG_VERSION_NUMERIC(1,15,99,903,0)
+ 	crtc->driverIsPerformingTransform = XF86DriverTransformOutput;
+-#else
+-	crtc->driverIsPerformingTransform = !crtc->transformPresent &&
+-		(crtc->rotation & 0xf) == RR_Rotate_0;
+-#endif
+ 
+ 	ret = xf86CrtcRotate(crtc);
+ 
+@@ -1182,8 +1177,6 @@ drmmode_load_cursor_argb (xf86CrtcPtr crtc, CARD32 *image)
+ 	}
+ }
+ 
+-#if XORG_VERSION_CURRENT >= XORG_VERSION_NUMERIC(1,15,99,903,0)
+-
+ static Bool drmmode_load_cursor_argb_check(xf86CrtcPtr crtc, CARD32 * image)
+ {
+ 	if (!drmmode_can_use_hw_cursor(crtc))
+@@ -1193,8 +1186,6 @@ static Bool drmmode_load_cursor_argb_check(xf86CrtcPtr crtc, CARD32 * image)
+ 	return TRUE;
+ }
+ 
+-#endif
+-
+ static void
+ drmmode_hide_cursor (xf86CrtcPtr crtc)
+ {
+@@ -1406,10 +1397,7 @@ static xf86CrtcFuncsRec drmmode_crtc_funcs = {
+     .show_cursor = drmmode_show_cursor,
+     .hide_cursor = drmmode_hide_cursor,
+     .load_cursor_argb = drmmode_load_cursor_argb,
+-#if XORG_VERSION_CURRENT >= XORG_VERSION_NUMERIC(1,15,99,903,0)
+     .load_cursor_argb_check = drmmode_load_cursor_argb_check,
+-#endif
+-
+     .gamma_set = drmmode_crtc_gamma_set,
+     .shadow_create = drmmode_crtc_shadow_create,
+     .shadow_allocate = drmmode_crtc_shadow_allocate,
+diff --git a/src/radeon_glamor.c b/src/radeon_glamor.c
+index 8ca413f7..af7f568d 100644
+--- a/src/radeon_glamor.c
++++ b/src/radeon_glamor.c
+@@ -128,15 +128,6 @@ radeon_glamor_pre_init(ScrnInfoPtr scrn)
+ 		return FALSE;
+ 	}
+ 
+-#if XORG_VERSION_CURRENT < XORG_VERSION_NUMERIC(1,15,0,0,0)
+-	if (!xf86LoaderCheckSymbol("glamor_egl_init")) {
+-		xf86DrvMsg(scrn->scrnIndex, s ? X_ERROR : X_WARNING,
+-			   "glamor requires Load \"glamoregl\" in "
+-			   "Section \"Module\", disabling.\n");
+-		return FALSE;
+-	}
+-#endif
+-
+ 	info->gbm = gbm_create_device(pRADEONEnt->fd);
+ 	if (!info->gbm) {
+ 		xf86DrvMsg(scrn->scrnIndex, X_ERROR,
+diff --git a/src/radeon_probe.c b/src/radeon_probe.c
+index 04f9e559..ab8e9348 100644
+--- a/src/radeon_probe.c
++++ b/src/radeon_probe.c
+@@ -197,10 +197,8 @@ RADEONDriverFunc(ScrnInfoPtr scrn, xorgDriverFuncOp op, void *data)
+ 	    flag = (CARD32 *)data;
+ 	    (*flag) = 0;
+ 	    return TRUE;
+-#if XORG_VERSION_CURRENT > XORG_VERSION_NUMERIC(1,15,99,0,0)
+ 	case SUPPORTS_SERVER_FDS:
+ 	    return TRUE;
+-#endif
+ 	default:
+ 	    return FALSE;
+     }

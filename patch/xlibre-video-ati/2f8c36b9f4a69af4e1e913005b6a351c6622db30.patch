@@ -1,0 +1,30 @@
+From 2f8c36b9f4a69af4e1e913005b6a351c6622db30 Mon Sep 17 00:00:00 2001
+From: "Enrico Weigelt, metux IT consult" <info@metux.net>
+Date: Mon, 14 Jul 2025 21:51:28 +0200
+Subject: [PATCH] drop support for xserver < 1.14.99.2
+
+No need to support really ancient Xserver versions - the lowest supported
+one shall be 25.0.0.0.
+
+Signed-off-by: Enrico Weigelt, metux IT consult <info@metux.net>
+---
+ src/drmmode_display.c | 5 -----
+ 1 file changed, 5 deletions(-)
+
+diff --git a/src/drmmode_display.c b/src/drmmode_display.c
+index af598999..7f101ae0 100644
+--- a/src/drmmode_display.c
++++ b/src/drmmode_display.c
+@@ -3327,12 +3327,7 @@ radeon_mode_hotplug(ScrnInfoPtr scrn, drmmode_ptr drmmode)
+ 	drmmode_validate_leases(scrn);
+ 
+ 	if (changed) {
+-#if XORG_VERSION_CURRENT >= XORG_VERSION_NUMERIC(1,14,99,2,0)
+ 		RRSetChanged(xf86ScrnToScreen(scrn));
+-#else
+-		rrScrPrivPtr rrScrPriv = rrGetScrPriv(scrn->pScreen);
+-		rrScrPriv->changed = TRUE;
+-#endif
+ 		RRTellChanged(xf86ScrnToScreen(scrn));
+ 	}
+ 
