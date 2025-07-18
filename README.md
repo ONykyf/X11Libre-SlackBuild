@@ -10,3 +10,5 @@ You can run x11libre.SlackBuild to rebuild (and by default to upgrade, if UPGRAD
 ./x11libre.SlackBuild xlibre-server
 
 XOrg and X11Libre sources initially were as of Slackware-current and github.com/X11Libre on 01.07.2025. Source files will be updated, or You can do it yourself. In case of eventual problems after Your modifications You will find a *.patch_failed, *.configure_failed, or *.make_failed file instead of a built package.
+
+You can find more detailed instructions and/or ask for help at https://github.com/orgs/X11Libre/discussions/217
