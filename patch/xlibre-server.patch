@@ -25,4 +25,8 @@ cat $CWD/patch/xlibre-server/xserver-libre-xserver-use-regex-for-InputClass.patc
 # Make glamor work on nvidia.
 cat $CWD/patch/xlibre-server/glamor_Use_EGL_LINUX_DMA_BUF_EXT_to_create_GBM_bo_EGLImages.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
 
+# Flush pending glamor operations before CloseScreen.
+cat $CWD/patch/xlibre-server/xlibre-xserver-flush-pending-before-closescreen.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
 
+# Move two Close... functions to post-hooks to avoid a segfault of intel video driver at CloseScreen.
+cat $CWD/patch/xlibre-server/xlibre-make-midcclosescreen-picturescreenclose-a-post-hook.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }

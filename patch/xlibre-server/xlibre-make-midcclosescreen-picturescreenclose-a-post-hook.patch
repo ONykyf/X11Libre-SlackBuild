@@ -1,0 +1,40 @@
+--- xserver-xlibre-xserver-25.0.0.5/mi/midispcur.c.orig	2025-07-18 01:17:24.843356892 +0300
++++ xserver-xlibre-xserver-25.0.0.5/mi/midispcur.c	2025-07-18 01:18:31.463359024 +0300
+@@ -102,7 +102,7 @@
+     if (!pScreenPriv)
+         return FALSE;
+ 
+-    dixScreenHookClose(pScreen, miDCCloseScreen);
++    dixScreenHookPostClose(pScreen, miDCCloseScreen);
+     dixSetPrivate(&pScreen->devPrivates, miDCScreenKey, pScreenPriv);
+ 
+     if (!miSpriteInitialize(pScreen, screenFuncs)) {
+@@ -135,7 +135,7 @@
+ 
+ static void miDCCloseScreen(CallbackListPtr *pcbl, ScreenPtr pScreen, void *unused)
+ {
+-    dixScreenUnhookClose(pScreen, miDCCloseScreen);
++    dixScreenUnhookPostClose(pScreen, miDCCloseScreen);
+ 
+     miDCScreenPtr pScreenPriv;
+     pScreenPriv = (miDCScreenPtr) dixLookupPrivate(&pScreen->devPrivates,
+--- xserver-xlibre-xserver-25.0.0.5/render/picture.c.orig	2025-07-18 01:42:54.429405839 +0300
++++ xserver-xlibre-xserver-25.0.0.5/render/picture.c	2025-07-18 01:44:20.248408585 +0300
+@@ -89,7 +89,7 @@
+     SetPictureScreen(pScreen, 0);
+     free(ps->formats);
+     free(ps);
+-    dixScreenUnhookClose(pScreen, PictureScreenClose);
++    dixScreenUnhookPostClose(pScreen, PictureScreenClose);
+ }
+ 
+ static void
+@@ -683,7 +683,7 @@
+     pScreen->StoreColors = PictureStoreColors;
+ 
+     dixScreenHookWindowDestroy(pScreen, picture_window_destructor);
+-    dixScreenHookClose(pScreen, PictureScreenClose);
++    dixScreenHookPostClose(pScreen, PictureScreenClose);
+ 
+     if (!PictureSetDefaultFilters(pScreen)) {
+         PictureResetFilters(pScreen);

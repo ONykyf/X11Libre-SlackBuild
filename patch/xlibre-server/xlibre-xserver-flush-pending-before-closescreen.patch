@@ -1,0 +1,10 @@
+--- xserver-xlibre-xserver-25.0.0.5/glamor/glamor.c.orig	2025-07-15 14:27:45.241518640 +0300
++++ xserver-xlibre-xserver-25.0.0.5/glamor/glamor.c	2025-07-15 14:29:32.102352917 +0300
+@@ -926,6 +926,7 @@
+     PixmapPtr screen_pixmap;
+ 
+     glamor_priv = glamor_get_screen_private(screen);
++    glamor_flush(glamor_priv);
+     glamor_sync_close(screen);
+     glamor_composite_glyphs_fini(screen);
+     glamor_set_glvnd_vendor(screen, NULL);
