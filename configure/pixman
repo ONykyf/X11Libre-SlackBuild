@@ -9,6 +9,8 @@ fi
 
 export CFLAGS="$SLKCFLAGS"
 export CXXFLAGS="$SLKCFLAGS"
+rm -f ${SLACK_X_BUILD_DIR}/${PKGNAME}.configure_failed
+
 mkdir meson-build
 cd meson-build
 meson setup \
@@ -26,4 +28,4 @@ meson setup \
   -Dvmx=disabled \
   -Dtests=disabled \
   -Dsse2=$do_sse2 \
-  .. || exit 1
+  .. || touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.configure_failed

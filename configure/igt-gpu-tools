@@ -1,5 +1,7 @@
-CFLAGS="$SLKCFLAGS -Wno-error=array-bounds" \
-CXXFLAGS=$SLKCFLAGS \
+export CFLAGS="$SLKCFLAGS -Wno-error=array-bounds"
+export CXXFLAGS="$SLKCFLAGS"
+rm -f ${SLACK_X_BUILD_DIR}/${PKGNAME}.configure_failed
+
 mkdir meson-build
 cd meson-build
 meson setup \
@@ -12,4 +14,4 @@ meson setup \
   -Ddocs=disabled \
   -Dtests=disabled \
   -Drunner=disabled \
-  .. || exit 1
+  .. || touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.configure_failed

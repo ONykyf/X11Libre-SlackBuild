@@ -1,12 +1,15 @@
+rm -f ${SLACK_X_BUILD_DIR}/${PKGNAME}.configure_failed
 if [ -x ./configure ]; then
   CONFIGURE="./configure"
 elif [ -x ./autogen.sh ]; then
   CONFIGURE="./autogen.sh"
 else
+  touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.configure_failed
   echo "ERROR: neither ./configure nor ./autogen.sh found."
   sleep 5
-  exit 1
 fi
+
+[ -r ${SLACK_X_BUILD_DIR}/${PKGNAME}.configure_failed ] || \
 CFLAGS="$SLKCFLAGS -Wno-error=implicit-function-declaration" \
 CXXFLAGS=$SLKCFLAGS \
 $CONFIGURE \
@@ -19,4 +22,5 @@ $CONFIGURE \
   --docdir=/usr/doc/${PKGNAME}-${MODULAR_PACKAGE_VERSION} \
   --disable-static \
   --enable-year2038 \
-  --build=$ARCH-slackware-linux
+  --build=$ARCH-slackware-linux \
+  || touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.configure_failed

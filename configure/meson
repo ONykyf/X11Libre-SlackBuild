@@ -1,5 +1,7 @@
 export CFLAGS="$SLKCFLAGS"
 export CXXFLAGS="$SLKCFLAGS"
+rm -f ${SLACK_X_BUILD_DIR}/${PKGNAME}.configure_failed
+
 mkdir build
 cd build
 meson setup \
@@ -14,4 +16,4 @@ meson setup \
   --sysconfdir /etc \
   --localstatedir /var \
   --buildtype=release \
-  .. || exit 1
+  .. || touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.configure_failed

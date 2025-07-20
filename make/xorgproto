@@ -1,7 +1,13 @@
 export CFLAGS="$SLKCFLAGS"
 export CXXFLAGS="$SLKCFLAGS"
-ninja || exit 1
-DESTDIR=$PKG ninja install || exit 1
+rm -f ${SLACK_X_BUILD_DIR}/${PKGNAME}.make_failed
+
+ninja || touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.make_failed
+
+[ -r ${SLACK_X_BUILD_DIR}/${PKGNAME}.make_failed ] \
+  || DESTDIR=$PKG ninja install \
+  || touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.make_failed
+
 cd ..
 # meson doesn't seem to care about a docdir:
 mkdir -p $PKG/usr/doc/${PKGNAME}-${MODULAR_PACKAGE_VERSION}
@@ -10,3 +16,4 @@ for docfile in PM_spec compositeproto.txt damageproto.txt dri2proto.txt dri3prot
   chown root:root $PKG/usr/doc/${PKGNAME}-${MODULAR_PACKAGE_VERSION}/${docfile}
   chmod 644 $PKG/usr/doc/${PKGNAME}-${MODULAR_PACKAGE_VERSION}/${docfile}
 done
+
