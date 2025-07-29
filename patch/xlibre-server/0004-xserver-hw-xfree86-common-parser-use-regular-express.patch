@@ -1,0 +1,172 @@
+From f38f6741582f08e6e7ed0afb9551563ec05c9ef8 Mon Sep 17 00:00:00 2001
+From: Oleh Nykyforchyn <oleh.nyk@gmail.com>
+Date: Thu, 24 Jul 2025 14:02:32 +0300
+Subject: [PATCH 4/5] xserver: hw/xfree86/{common,parser}: use regular
+ expressions for matching
+
+It is patch 4/5 of a series that refactors matching input and output devices to classes and
+extends possibilities to describe them, in particular, it allows use of regular expressions.
+
+This patch introduces matching against a regular expression using regex library.
+
+Signed-off-by: Oleh Nykyforchyn <oleh.nyk@gmail.com>
+---
+ hw/xfree86/common/xf86Xinput.c | 23 +++++++++++++++++--
+ hw/xfree86/parser/patterns.c   | 41 +++++++++++++++++++++++++++++++---
+ hw/xfree86/parser/xf86Parser.h |  5 +++++
+ 3 files changed, 64 insertions(+), 5 deletions(-)
+
+diff --git a/hw/xfree86/common/xf86Xinput.c b/hw/xfree86/common/xf86Xinput.c
+index 639209041..42b4a60b6 100644
+--- a/hw/xfree86/common/xf86Xinput.c
++++ b/hw/xfree86/common/xf86Xinput.c
+@@ -531,7 +531,9 @@ HostOS(void)
+ 
+ /*
+  * Match an attribute against a pattern. Matching mode is
+- * determined by pattern->mode member.
++ * determined by pattern->mode member. If the mode is REGEX,
++ * then regex_t is allocated and compiled only during
++ * the first call, to save time and memory.
+  */
+ 
+ static int
+@@ -570,7 +572,6 @@ match_token(const char *attr, xf86MatchPattern *pattern)
+             return (strcmp(attr, pattern->str)) ? 0 : -1;
+ #endif
+         case MATCH_SUBSTRINGS_SEQUENCE:
+-        default:
+             {
+                 char* str = pattern->str;
+                 while (*str) {
+@@ -582,6 +583,24 @@ match_token(const char *attr, xf86MatchPattern *pattern)
+                 }
+             }
+             return -1;
++        case MATCH_REGEX:
++        default:
++            if (pattern->regex == NULL) {
++                int r;
++                if ((pattern->regex = malloc(sizeof(regex_t))) == NULL) {
++                    pattern->mode = MATCH_IS_INVALID;
++                    return 0;
++                }
++                r = regcomp(pattern->regex, pattern->str, REG_EXTENDED | REG_NOSUB);
++                if (r) { /* Wrong regex */
++                    regfree(pattern->regex);
++                    free(pattern->regex);
++                    LogMessageVerb(X_ERROR, 1, "Wrong regex: \"%s\"\n", pattern->str);
++                    pattern->mode = MATCH_IS_INVALID;
++                    return 0;
++                }
++            }
++            return (regexec(pattern->regex, attr,0, NULL, 0)) ? 0 : -1;
+     }
+ }
+ 
+diff --git a/hw/xfree86/parser/patterns.c b/hw/xfree86/parser/patterns.c
+index bf2a06855..25d1f28da 100644
+--- a/hw/xfree86/parser/patterns.c
++++ b/hw/xfree86/parser/patterns.c
+@@ -50,6 +50,7 @@
+ #define LOG_AND '&'
+ 
+ #define NEG_FLAG '!'
++#define REGEX_FLAG '~'
+ 
+ 
+ xf86MatchGroup*
+@@ -88,7 +89,37 @@ xf86createMatchGroup(const char *arg, xf86MatchMode pref_mode,
+         pattern->is_negated = FALSE;
+ 
+     pattern->str = NULL;
+-
++    pattern->regex = NULL;
++
++    /* Check if there is a regex prefix */
++    if (*str == REGEX_FLAG) {
++        pattern->mode = MATCH_REGEX;
++        str ++;
++        if (*str) {
++            char *last;
++            last = strchr(str+1, *str);
++            if (last)
++                n = last-str-1;
++            else
++                n = strlen(str+1);
++            pattern->str = strndup(str+1, n);
++            if (pattern->str == NULL)
++                goto fail;
++            *(pattern->str+n) = '\0';
++            str += n+1;
++            if (*str) str++;
++        }
++        else {
++        /* no regex, notning to match against */
++            pattern->mode = MATCH_IS_INVALID;
++            LogMessageVerb(X_ERROR, 1,
++                "No regular expression supplied after \'%c\' in \"%s\", ignoring\n",
++                REGEX_FLAG, arg);
++            free(pattern->str);
++            pattern->str = NULL;
++        }
++    }
++    else {
+         n = strcspn(str, sep_or);
+         if (n > strcspn(str, sep_and)) {
+             pattern->mode = MATCH_SUBSTRINGS_SEQUENCE;
+@@ -134,6 +165,7 @@ xf86createMatchGroup(const char *arg, xf86MatchMode pref_mode,
+             *(pattern->str+n) = '\0'; /* should already be, but to be sure */
+             str += n;
+         }
++    }
+ 
+     while (*str == LOG_OR)
+         str++;
+@@ -159,8 +191,11 @@ xf86printMatchPattern(FILE * cf, const xf86MatchPattern *pattern, Bool not_first
+     if (pattern->mode == MATCH_IS_INVALID)
+         fprintf(cf, "invalid:%s",
+             pattern->str ? pattern->str : "(none)");
+-    else
+-    if (pattern->mode == MATCH_SUBSTRINGS_SEQUENCE) {
++    else if (pattern->mode == MATCH_REGEX)
++    /* FIXME: Hope there is no '~' in the pattern */
++        fprintf(cf, "%c%s%c", REGEX_FLAG,
++            pattern->str ? pattern->str : "(none)", REGEX_FLAG);
++    else if (pattern->mode == MATCH_SUBSTRINGS_SEQUENCE) {
+         Bool after = FALSE;
+         char *str = pattern->str;
+         while (*str) {
+diff --git a/hw/xfree86/parser/xf86Parser.h b/hw/xfree86/parser/xf86Parser.h
+index ccb0b5c80..8dd4a5d2b 100644
+--- a/hw/xfree86/parser/xf86Parser.h
++++ b/hw/xfree86/parser/xf86Parser.h
+@@ -67,6 +67,9 @@
+ #include "xf86Optrec.h"
+ #include "list.h"
+ 
++#include <sys/types.h>
++#include <regex.h>
++
+ #define HAVE_PARSER_DECLS
+ 
+ typedef struct {
+@@ -317,6 +320,7 @@ typedef enum {
+     MATCH_AS_FILENAME,
+     MATCH_AS_PATHNAME,
+     MATCH_SUBSTRINGS_SEQUENCE,
++    MATCH_REGEX
+ } xf86MatchMode;
+ 
+ typedef struct {
+@@ -324,6 +328,7 @@ typedef struct {
+     xf86MatchMode mode;
+     Bool is_negated;
+     char *str;
++    regex_t *regex;
+ } xf86MatchPattern;
+ 
+ typedef struct {
+-- 
+2.47.1
+

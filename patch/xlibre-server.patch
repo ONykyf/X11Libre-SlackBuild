@@ -18,15 +18,16 @@ zcat $CWD/patch/xlibre-server/0001-xfree86-use-modesetting-driver-by-default-on-
 # Only use Intel DDX with pre-gen4 hardware. Newer hardware will the the modesetting driver by default:
 zcat $CWD/patch/xlibre-server/06_use-intel-only-on-pre-gen4.diff.gz | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
 
-# Patches to provide extended InputClass deninition syntax.
+# Patches to provide extended InputClass/OutpuClass deninition syntax.
 # Needs regex library.
-cat $CWD/patch/xlibre-server/xserver-libre-xserver-use-regex-for-InputClass.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
-
-# Make glamor work on nvidia.
-cat $CWD/patch/xlibre-server/glamor_Use_EGL_LINUX_DMA_BUF_EXT_to_create_GBM_bo_EGLImages.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+cat $CWD/patch/xlibre-server/0001-xserver-hw-xfree86-parser-prepare-types-for-pattern-.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+cat $CWD/patch/xlibre-server/0002-xserver-hw-xfree86-parser-create-pattern-group-from-.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+cat $CWD/patch/xlibre-server/0003-xserver-hw-xfree86-common-parser-use-pattern-groups-.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+cat $CWD/patch/xlibre-server/0004-xserver-hw-xfree86-common-parser-use-regular-express.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+cat $CWD/patch/xlibre-server/0005-xserver-hw-xfree86-man-update-manual-page.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
 
 # Flush pending glamor operations before CloseScreen.
 cat $CWD/patch/xlibre-server/xlibre-xserver-flush-pending-before-closescreen.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
 
-# Move two Close... functions to post-hooks to avoid a segfault of intel video driver at CloseScreen.
-cat $CWD/patch/xlibre-server/xlibre-make-midcclosescreen-picturescreenclose-a-post-hook.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+# Compile misyncshm if xshmfence is found regardless of libdrm:
+cat $CWD/patch/xlibre-server/xserver-xlibre-build-without-libdrm.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }

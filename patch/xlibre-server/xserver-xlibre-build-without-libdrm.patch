@@ -1,0 +1,11 @@
+--- xserver-xlibre-xserver-25.0.0.6rc1/miext/sync/meson.build.orig	2025-07-29 09:59:24.192947570 +0300
++++ xserver-xlibre-xserver-25.0.0.6rc1/miext/sync/meson.build	2025-07-29 09:59:51.428946619 +0300
+@@ -10,7 +10,7 @@
+     'misyncstr.h',
+ ]
+ 
+-if build_dri3
++if xshmfence_dep.found()
+     srcs_miext_sync += 'misyncshm.c'
+ endif
+ 
