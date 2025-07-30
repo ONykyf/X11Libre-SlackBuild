@@ -18,6 +18,9 @@ zcat $CWD/patch/xlibre-server/0001-xfree86-use-modesetting-driver-by-default-on-
 # Only use Intel DDX with pre-gen4 hardware. Newer hardware will the the modesetting driver by default:
 zcat $CWD/patch/xlibre-server/06_use-intel-only-on-pre-gen4.diff.gz | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
 
+# Take into account divergence between master and maint-25.0
+cat $CWD/patch/xlibre-server/e0440a0b428ac69f91b140f14820adaa6645a6c7.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+
 # Patches to provide extended InputClass/OutpuClass deninition syntax.
 # Needs regex library.
 cat $CWD/patch/xlibre-server/0001-xserver-hw-xfree86-parser-prepare-types-for-pattern-.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
@@ -31,3 +34,4 @@ cat $CWD/patch/xlibre-server/xlibre-xserver-flush-pending-before-closescreen.pat
 
 # Compile misyncshm if xshmfence is found regardless of libdrm:
 cat $CWD/patch/xlibre-server/xserver-xlibre-build-without-libdrm.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+
