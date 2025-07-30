@@ -1,2 +1,0 @@
-# %#x format in unknown to vpnprintf()
-zcat $CWD/patch/xlibre-input-wacom/xlibre-xf86-input-wacom-no-hash-in-formats.patch.gz | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
