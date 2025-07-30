@@ -12,4 +12,6 @@ zcat $CWD/patch/xlibre-video-ati/xlibre-video-ati-no-double-destroy-pixmap.patch
 # KMS doesn't need to flush glamor:
 zcat $CWD/patch/xlibre-video-ati/xlibre-video-ati-dont-flush-destroyed-glamor.patch.gz | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
 
-
+# Test:
+cat $CWD/patch/xlibre-video-ati/0b84eb7b662cd9d25b3d56484730e5866b588800.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+cat $CWD/patch/xlibre-video-ati/c7be44f710b01a61b44231652b1d01fc18e0965d.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }

@@ -1,0 +1,26 @@
+From 0b84eb7b662cd9d25b3d56484730e5866b588800 Mon Sep 17 00:00:00 2001
+From: "Enrico Weigelt, metux IT consult" <info@metux.net>
+Date: Mon, 28 Jul 2025 15:22:27 +0200
+Subject: [PATCH] radeon_glamor_wrappers: fix missing include of fb.h
+
+We're calling fbPixmapToRegion() here, which is defined in fb.h
+
+Signed-off-by: Enrico Weigelt, metux IT consult <info@metux.net>
+---
+ src/radeon_glamor_wrappers.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/radeon_glamor_wrappers.c b/src/radeon_glamor_wrappers.c
+index bc47cc89..c0c8eb12 100644
+--- a/src/radeon_glamor_wrappers.c
++++ b/src/radeon_glamor_wrappers.c
+@@ -34,6 +34,9 @@
+ 
+ #ifdef USE_GLAMOR
+ 
++#include <fb.h>
++#include <fbpict.h>
++
+ #include "radeon.h"
+ #include "radeon_bo_helper.h"
+ #include "radeon_glamor.h"
