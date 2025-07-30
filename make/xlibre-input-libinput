@@ -1,0 +1,10 @@
+export CFLAGS="$SLKCFLAGS"
+export CXXFLAGS="$SLKCFLAGS"
+
+rm -f ${SLACK_X_BUILD_DIR}/${PKGNAME}.make_failed
+
+ninja -C build || touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.make_failed
+
+[ -r ${SLACK_X_BUILD_DIR}/${PKGNAME}.make_failed ] \
+  || DESTDIR=$PKG ninja install -C build \
+  || touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.make_failed

@@ -1,0 +1,25 @@
+export CFLAGS="$SLKCFLAGS -Wno-error=implicit-function-declaration"
+export CXXFLAGS="$SLKCFLAGS"
+
+rm -f ${SLACK_X_BUILD_DIR}/${PKGNAME}.configure_failed
+
+mkdir build
+cd build
+meson setup \
+  --prefix=/usr \
+  --libdir=/usr/lib${LIBDIRSUFFIX} \
+  --sysconfdir /etc \
+  --localstatedir /var \
+  --infodir /usr/info \
+  --mandir /usr/man \
+  --libexecdir /usr/libexec \
+  --bindir /usr/bin \
+  --sbindir /usr/sbin \
+  --includedir /usr/include \
+  --datadir /usr/share \
+  --buildtype=release \
+  -D xorg-module-dir="/usr/lib${LIBDIRSUFFIX}/xorg/modules/xlibre-$XSHORTVER" \
+  -D xorg-conf-dir='/usr/share/X11/xorg.conf.d' \
+  .. || touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.configure_failed
+
+cd ..
