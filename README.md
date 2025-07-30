@@ -1,6 +1,6 @@
 # X11Libre-SlackBuild
 
-This repository provides a Slackware-current X11 build tree modified to build [XLibre](https://github.com/X11Libre/xserver). The sources were imported from Slackware-current Xorg and the XLibre project on Juli 1, 2025 and are constantly updated.
+This repository provides a Slackware-current X11 build tree modified to build [XLibre](https://github.com/X11Libre/xserver). The sources were imported from Slackware-current Xorg and the XLibre project on July 1, 2025 and are constantly updated.
 
 
 ## Preparing for Install
