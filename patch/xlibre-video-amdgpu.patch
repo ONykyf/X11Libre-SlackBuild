@@ -1,0 +1,3 @@
+# Test:
+cat $CWD/patch/xlibre-video-amdgpu/c341b08c035aa6024770a49a78bb864ceb035a75.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+cat $CWD/patch/xlibre-video-amdgpu/8e0f043e82e73e5bf19179f2d6a22e0b52186c51.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }

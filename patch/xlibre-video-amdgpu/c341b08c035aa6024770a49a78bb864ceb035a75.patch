@@ -1,0 +1,73 @@
+From c341b08c035aa6024770a49a78bb864ceb035a75 Mon Sep 17 00:00:00 2001
+From: "Enrico Weigelt, metux IT consult" <info@metux.net>
+Date: Mon, 28 Jul 2025 14:36:30 +0200
+Subject: [PATCH] configure: fix broken xserver version detection
+
+Back a decade ago, somebody obviously idn't know how to check for xserver
+version and abused a quite unrelated exported symbol instead. Since that
+symbol isn't exported anymore (because no driver was using it), this black
+magic now fails.
+
+We're not trying to support more than a decade old Xservers, so there's
+no point in this check at all, just drop it.
+
+Fixes: e5dfb6c2667994701ee451bf82c4142cbf343405
+Signed-off-by: Enrico Weigelt, metux IT consult <info@metux.net>
+---
+ configure.ac        | 10 ----------
+ src/amdgpu_glamor.c |  6 +-----
+ 2 files changed, 1 insertion(+), 15 deletions(-)
+
+diff --git a/configure.ac b/configure.ac
+index 8fde2c0..91ee35f 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -165,16 +165,6 @@ AC_CHECK_DECL(RegionDuplicate,
+ 	      [#include <xorg-server.h>
+ 	       #include <regionstr.h>])
+ 
+-AC_CHECK_DECL(fbGlyphs,
+-	      [AC_DEFINE(HAVE_FBGLYPHS, 1, [Have fbGlyphs API])], [],
+-	      [#include <X11/Xmd.h>
+-	       #include <X11/Xfuncproto.h>
+-	       #include <X11/extensions/renderproto.h>
+-	       #include <xorg-server.h>
+-	       #include <picture.h>
+-	       #include <glyphstr.h>
+-	       #include <fbpict.h>])
+-
+ AC_CHECK_DECL(xf86CursorResetCursor,
+ 	      [AC_DEFINE(HAVE_XF86_CURSOR_RESET_CURSOR, 1,
+ 	      [Have xf86CursorResetCursor API])], [],
+diff --git a/src/amdgpu_glamor.c b/src/amdgpu_glamor.c
+index 20ce812..b49addc 100644
+--- a/src/amdgpu_glamor.c
++++ b/src/amdgpu_glamor.c
+@@ -426,18 +426,14 @@ Bool amdgpu_glamor_init(ScreenPtr screen)
+ 	ScrnInfoPtr scrn = xf86ScreenToScrn(screen);
+ 	AMDGPUInfoPtr info = AMDGPUPTR(scrn);
+ #ifdef RENDER
+-#ifdef HAVE_FBGLYPHS
+ 	UnrealizeGlyphProcPtr SavedUnrealizeGlyph = NULL;
+-#endif
+ 	PictureScreenPtr ps = NULL;
+ 
+ 	if (info->shadow_primary) {
+ 		ps = GetPictureScreenIfSet(screen);
+ 
+ 		if (ps) {
+-#ifdef HAVE_FBGLYPHS
+ 			SavedUnrealizeGlyph = ps->UnrealizeGlyph;
+-#endif
+ 			info->glamor.SavedGlyphs = ps->Glyphs;
+ 			info->glamor.SavedTriangles = ps->Triangles;
+ 			info->glamor.SavedTrapezoids = ps->Trapezoids;
+@@ -459,7 +455,7 @@ Bool amdgpu_glamor_init(ScreenPtr screen)
+ 	if (info->shadow_primary)
+ 		amdgpu_glamor_screen_init(screen);
+ 
+-#if defined(RENDER) && defined(HAVE_FBGLYPHS)
++#if defined(RENDER)
+ 	/* For ShadowPrimary, we need fbUnrealizeGlyph instead of
+ 	 * glamor_unrealize_glyph
+ 	 */
