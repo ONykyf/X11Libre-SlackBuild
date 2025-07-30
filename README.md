@@ -1,14 +1,158 @@
 # X11Libre-SlackBuild
-Slackware-current X11 build tree modified to build XLibre
 
-You can run x11libre.SlackBuild to rebuild (and by default to upgrade, if UPGRADE_PACKAGE=no is not set) the entire X packages set, which will be found in /tmp/x11-build. This takes a while to complete, but the dependencies will be certainly satisfied. If Your Slackware is too outdated, it may take two passes (very unlikely, but libSM, libXaw, libXaw3d and libXt needed a second pass to build on one of my boxes). If Your system is more or less up-to-date, You can try to recompile only X servers and drivers. In the latter case just run (keeping the default UPGRADE_PACKAGE=always)
+This repository provides a Slackware-current X11 build tree modified to build [XLibre](https://github.com/X11Libre/xserver). The sources were imported from Slackware-current Xorg and the XLibre project on Juli 1, 2025 and are constantly updated.
 
+
+## Preparing for Install
+
+Before building and installing the packages, it is recommended to set the default runlevel of your system to `text mode` a.k.a. runlevel `3` instead of `graphical mode` a.k.a. `4` in the file `/etc/inittab`:
+
+```
+#id:4:initdefault:
+id:3:initdefault:
+```
+
+Doing so will make your system always boot into `text mode` and gives you a nice safety margin in case the X server fails to start. After system startup and logging in as `root` user you will be able to manually switch to `graphical mode` by running `telinit 4`.
+
+When you see that XLibre works the way you want it, you can switch the default runlevel back to `4` in `/etc/inittab`. Another possibility to work around problems with X server is to have a SSH server start up on your machine by default and remote controlling it from another computer.
+
+
+## Getting the Build Files
+
+There are two ways to obtain the build files: via downloading a ZIP archive or via Git cloning the repository.
+
+
+### Downloading the ZIP Archive
+
+You can download the [ZIP archive of this repository](https://github.com/ONykyf/X11Libre-SlackBuild/archive/refs/heads/main.zip) and extract it afterwards:
+
+```shell
+wget -O X11Libre-SlackBuild.zip https://github.com/ONykyf/X11Libre-SlackBuild/archive/refs/heads/main.zip
+unzip X11Libre-SlackBuild.zip
+mv X11Libre-SlackBuild-main X11Libre-SlackBuild
+cd X11Libre-SlackBuild
+```
+
+Please be advised that the initial download of the ZIP archive is about 76 MB.
+
+
+### Cloning the Repository
+
+You can also clone the repository with [Git](https://git-scm.com) like so:
+
+```shell
+git clone https://github.com/ONykyf/X11Libre-SlackBuild.git
+cd X11Libre-SlackBuild 
+```
+
+Using this method gives you the opportunity to later simply update the repository by running `git pull`. Please be advised that the initial download of the Git repository is about 160 MB.
+
+
+## Running the SlackBuild
+
+After downloading and changing into the main directory, just run the SlackBuild to build all the packages provided by this build tree:
+
+```shell
+./x11libre.Slackbuild
+```
+
+Grab some coffee and wait. It won't take too long to compile the entire X11 tree with XLibre instead of Xorg. By default the built packages are immediately installed and replace older versions you have on your system. As a bonus, you get the most up-to-date X libraries and applications with all dependencies satisfied.
+
+
+### Building the XLibre Xserver and its Drivers Only
+
+If your system is more or less up-to-date, you can try to recompile the X server and its drivers only:
+
+```shell
 ./x11libre.SlackBuild xlibre-server
-
 ./x11libre.SlackBuild xlibre-driver
-
+# second pass due to circular dependencies on libinput
 ./x11libre.SlackBuild xlibre-server
+```
 
-XOrg and XLibre sources initially were as of Slackware-current and github.com/X11Libre on 01.07.2025. Source files are constantly updated, and You can do it yourself. In case of eventual problems after Your modifications You will find a *.patch_failed, *.configure_failed, or *.make_failed file instead of a built package. Please report issues at this page or at the link below, and we'll do our best to fix them as soon as possible.
 
-You can find more detailed instructions at https://github.com/orgs/X11Libre/discussions/217 and/or ask for help at https://github.com/orgs/X11Libre/discussions/categories/xlibre-on-slackware-linux (feel free to start a new discussion in this category if the existing ones do not meet Your needs).
+### Building Select Packages Only
+
+To build select packages only you can utilize the structure of the `src` directory. If you e.g. only want to build the package `xkeyboard-config` located under `src/data` you would invoke the build with:
+
+```shell
+./x11libre.SlackBuild data xkeyboard-config
+```
+
+This applies to all the other directories and files found in `src` as well.
+
+
+### Controlling the Upgrade Process
+
+You can control how packages are upgraded as they are built via the environment variable `UPGRADE_PACKAGES`. The default is to always upgrade newly-built packages, effectively setting `UPGRADE_PACKAGES=always`. To install newly built packages only if a package with the exact name is not already installed, use `UPGRADE_PACKAGES=yes`. To not upgrade any packages when they are built, pass `UPGRADE_PACKAGES=no`.
+
+
+### Logging and Debugging the Build
+
+Although in most cases the upgrade works flawlessly, you might want to collect the configure and build logs of all packages for future reference or troubleshooting by invoking the SlackBuild like this:
+
+```shell
+./x11libre.SlackBuild 2>&1 | tee ~/X-configure-build.log
+```
+
+In the unlikely case some package `foo` fails to build, a file `foo.patch_failed`, `foo.configure_failed`, or `foo.make_failed` will appear in `/tmp/x11-build` instead of `foo.txz`.
+
+
+### Known Pitfalls
+
+If your Slackware is too outdated, you may have to build all packages via `x11libre.SlackBuild` and it may take two passes to build them. This is very unlikely, but libSM, libXaw, libXaw3d and libXt needed a second pass to build on one of my boxes.
+
+On another rather outdated system `xkeyboard-config` failed to configure and the log revealed that `python3` lacked the module `strenum`. So I installed the missing module and reran the build:
+
+```shell
+pip3 install strenum
+./x11libre.SlackBuild data xkeyboard-config
+```
+
+### Finishing the Build
+
+After the build you will find the built packages in `/tmp/x11-build/*.txz`. Please keep them in a safe place. You may also use them to install XLibre on another computer. In the `x11-build` directory there will also be subdirectories containing source code. You may remove them if you are not curious about their contents.
+
+
+## Uninstalling
+
+_Don't worry, you can go back to Xorg any time!_
+
+Switch your default runlevel to `text mode` as [described above](#preparing-for-install), change to your safe place where you kept the `*.txz` packages and run [`removepkg`](http://www.slackware.com/config/packages.php):
+
+```shell
+cd <safe-place-of-packages>
+removepkg *.txz
+```
+
+Then change into the main SlackBuild directory `X11Libre-SlackBuild`, open the file `x11libre.SlackBuild` in your text editor of choice and uncomment the line below the line `# you can build Xorg as well` and comment the second line after it containing `xlibre-server` like so:
+
+```diff
+--- x11libre.SlackBuild.orig
++++ x11libre.SlackBuild
+@@ -145,9 +145,9 @@
+ # before getting this script to work.  It wasn't that hard...  I think.  ;-)
+ ( cd src
+   # You can build Xorg as well
+-  #  for x_source_dir in proto data util xcb lib app doc xserver driver font ; do
++  for x_source_dir in proto data util xcb lib app doc xserver driver font ; do
+   # xlibre-server is built twice due to a circular dependency on input-libinput in xlibre-driver
+-  for x_source_dir in proto data util xcb lib app doc xlibre-server xlibre-driver xlibre-server font ; do
++  #for x_source_dir in proto data util xcb lib app doc xlibre-server xlibre-driver xlibre-server font ; do
+ #  for x_source_dir in xlibre-driver xlibre-server ; do
+     # See if $1 is a source directory like "lib":
+     if [ ! -z "$1" ]; then
+```
+
+Grab another cup of coffee and run:
+
+```shell
+./x11libre.SlackBuild
+```
+
+You will get a brand new Xorg... but what for?.
+
+
+## Contact
+
+Please report any issues to [Issues · ONykyf/X11Libre-SlackBuild](https://github.com/ONykyf/X11Libre-SlackBuild/issues). In case you need help, want to report success or talk about other aspects of the build, just go to [Welcome to XLibre on Slackware Linux! · X11Libre · Discussion #217](https://github.com/orgs/X11Libre/discussions/217).
