@@ -1,0 +1,187 @@
+From 5c81ca8e6bd788f5c9fc0607dafac793850a59af Mon Sep 17 00:00:00 2001
+From: Oleh Nykyforchyn <oleh.nyk@gmail.com>
+Date: Fri, 1 Aug 2025 15:41:29 +0300
+Subject: [PATCH 1/4]  xserver: hw/xfree86/loader: simplify setting IgnoreABI
+ option
+
+It is patch 1/4 of a series that provides a convenient way to specify
+IgnoreABI on a per-driver basis.
+
+IgnoreABI option is kept in a single bit of an unsigned long variable
+LoaderOptions that has no other use. This patch replaces it with
+two Bool variables LoaderIgnoresABI (specific) and  LoaderIgnoresAllABI
+(server-wide).
+
+Signed-off-by: Oleh Nykyforchyn <oleh.nyk@gmail.com>
+---
+ hw/xfree86/common/xf86Init.c    |  7 +++----
+ hw/xfree86/loader/loader.c      | 24 ++++++++++++++++++++----
+ hw/xfree86/loader/loader.h      |  3 ++-
+ hw/xfree86/loader/loaderProcs.h |  8 +++-----
+ hw/xfree86/loader/loadmod.c     | 11 +++++++----
+ 5 files changed, 35 insertions(+), 18 deletions(-)
+
+diff --git a/hw/xfree86/common/xf86Init.c b/hw/xfree86/common/xf86Init.c
+index 41bcb9983..af548e1ab 100644
+--- a/hw/xfree86/common/xf86Init.c
++++ b/hw/xfree86/common/xf86Init.c
+@@ -331,9 +331,8 @@ InitOutput(ScreenInfo * pScreenInfo, int argc, char **argv)
+         /* Tell the loader the default module search path */
+         LoaderSetPath(xf86ModulePath);
+ 
+-        if (xf86Info.ignoreABI) {
+-            LoaderSetOptions(LDR_OPT_ABI_MISMATCH_NONFATAL);
+-        }
++        if (xf86Info.ignoreABI)
++            LoaderSetIgnoreAllABI();
+ 
+         if (xf86DoShowOptions)
+             DoShowOptions();
+@@ -962,7 +961,7 @@ ddxProcessArgument(int argc, char **argv, int i)
+         return 1;
+     }
+     if (!strcmp(argv[i], "-ignoreABI")) {
+-        LoaderSetOptions(LDR_OPT_ABI_MISMATCH_NONFATAL);
++        LoaderSetIgnoreAllABI();
+         return 1;
+     }
+     if (!strcmp(argv[i], "-verbose")) {
+diff --git a/hw/xfree86/loader/loader.c b/hw/xfree86/loader/loader.c
+index 5af7a54f3..cc4b4fef5 100644
+--- a/hw/xfree86/loader/loader.c
++++ b/hw/xfree86/loader/loader.c
+@@ -68,6 +68,9 @@
+ extern void *xorg_symbols[];
+ #endif
+ 
++Bool LoaderIgnoresAllABI;
++Bool LoaderIgnoresABI;
++
+ void
+ LoaderInit(void)
+ {
+@@ -87,6 +90,8 @@ LoaderInit(void)
+     LogMessageVerb(X_NONE, 2, "\t%s : %d.%d\n", ABI_CLASS_EXTENSION,
+                    GET_ABI_MAJOR(LoaderVersionInfo.extensionVersion),
+                    GET_ABI_MINOR(LoaderVersionInfo.extensionVersion));
++    LoaderIgnoresAllABI = FALSE;
++    LoaderIgnoresABI = FALSE;
+ }
+ 
+ /* Public Interface to the loader. */
+@@ -146,18 +151,29 @@ LoaderUnload(const char *name, void *handle)
+         dlclose(handle);
+ }
+ 
+-unsigned long LoaderOptions = 0;
++void
++LoaderSetIgnoreAllABI(void)
++{
++    LoaderIgnoresAllABI = TRUE;
++}
++
++Bool
++LoaderGetAndFlagIgnoreABI(const char *name)
++{
++    if (LoaderIgnoresAllABI)
++        LoaderIgnoresABI = TRUE;
++    return LoaderIgnoresABI;
++}
+ 
+ void
+-LoaderSetOptions(unsigned long opts)
++LoaderSetIgnoreABI(const char *name)
+ {
+-    LoaderOptions |= opts;
+ }
+ 
+ Bool
+ LoaderShouldIgnoreABI(void)
+ {
+-    return (LoaderOptions & LDR_OPT_ABI_MISMATCH_NONFATAL) != 0;
++    return LoaderIgnoresABI;
+ }
+ 
+ int
+diff --git a/hw/xfree86/loader/loader.h b/hw/xfree86/loader/loader.h
+index 4e83730a2..b5f1c6190 100644
+--- a/hw/xfree86/loader/loader.h
++++ b/hw/xfree86/loader/loader.h
+@@ -68,7 +68,8 @@ typedef struct {
+ } ModuleVersions;
+ extern const ModuleVersions LoaderVersionInfo;
+ 
+-extern unsigned long LoaderOptions;
++extern Bool LoaderIgnoresAllABI;
++extern Bool LoaderIgnoresABI;
+ 
+ /* Internal Functions */
+ void *LoaderOpen(const char *, int *);
+diff --git a/hw/xfree86/loader/loaderProcs.h b/hw/xfree86/loader/loaderProcs.h
+index 8b16cb7ea..964169d60 100644
+--- a/hw/xfree86/loader/loaderProcs.h
++++ b/hw/xfree86/loader/loaderProcs.h
+@@ -78,12 +78,10 @@ void LoaderSetPath(const char *path);
+ void LoaderUnload(const char *, void *);
+ unsigned long LoaderGetModuleVersion(ModuleDescPtr mod);
+ 
+-void LoaderResetOptions(void);
+-void LoaderSetOptions(unsigned long);
++void LoaderSetIgnoreAllABI(void);
++Bool LoaderGetAndFlagIgnoreABI(const char *);
++void LoaderSetIgnoreABI(const char *);
+ 
+ const char **LoaderListDir(const char *, const char **);
+ 
+-/* Options for LoaderSetOptions */
+-#define LDR_OPT_ABI_MISMATCH_NONFATAL		0x0001
+-
+ #endif                          /* _LOADERPROCS_H */
+diff --git a/hw/xfree86/loader/loadmod.c b/hw/xfree86/loader/loadmod.c
+index 2cdf91fd2..0c0a9088a 100644
+--- a/hw/xfree86/loader/loadmod.c
++++ b/hw/xfree86/loader/loadmod.c
+@@ -458,26 +458,26 @@ CheckVersion(const char *module, XF86ModuleVersionInfo * data,
+             vermin = GET_ABI_MINOR(ver);
+             if (abimaj != vermaj) {
+                 MessageType errtype;
+-                if (LoaderOptions & LDR_OPT_ABI_MISMATCH_NONFATAL)
++                if (LoaderIgnoresABI)
+                     errtype = X_WARNING;
+                 else
+                     errtype = X_ERROR;
+                 LogMessageVerb(errtype, 0, "%s: module ABI major version (%d) "
+                                "doesn't match the server's version (%d)\n",
+                                module, abimaj, vermaj);
+-                if (!(LoaderOptions & LDR_OPT_ABI_MISMATCH_NONFATAL))
++                if (!LoaderIgnoresABI)
+                     return FALSE;
+             }
+             else if (abimin > vermin) {
+                 MessageType errtype;
+-                if (LoaderOptions & LDR_OPT_ABI_MISMATCH_NONFATAL)
++                if (LoaderIgnoresABI)
+                     errtype = X_WARNING;
+                 else
+                     errtype = X_ERROR;
+                 LogMessageVerb(errtype, 0, "%s: module ABI minor version (%d) "
+                                "is newer than the server's version (%d)\n",
+                                module, abimin, vermin);
+-                if (!(LoaderOptions & LDR_OPT_ABI_MISMATCH_NONFATAL))
++                if (!LoaderIgnoresABI)
+                     return FALSE;
+             }
+         }
+@@ -778,6 +778,9 @@ LoadModule(const char *module, void *options, const XF86ModReqInfo *modreq,
+         setup = initdata->setup;
+         teardown = initdata->teardown;
+ 
++        if (LoaderGetAndFlagIgnoreABI(name))
++            LogMessageVerb(X_INFO, 3, "ABI ignored for module \"%s\"\n", name);
++
+         if (vers) {
+             if (!CheckVersion(module, vers, modreq)) {
+                 if (errmaj)
+-- 
+2.47.1
+

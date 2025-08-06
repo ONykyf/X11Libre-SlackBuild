@@ -1,4 +1,4 @@
-From d4767276a17385b23304e2c1f6d3e923f076205e Mon Sep 17 00:00:00 2001
+From 98ec57d87e63fb7a90c5a47162ee150c3421f3f6 Mon Sep 17 00:00:00 2001
 From: Oleh Nykyforchyn <oleh.nyk@gmail.com>
 Date: Thu, 24 Jul 2025 14:03:29 +0300
 Subject: [PATCH 5/5] xserver: hw/xfree86/man: update manual page

@@ -1,0 +1,77 @@
+From 4698ec9a69333a39f1c78c480cbe9ab8111dca92 Mon Sep 17 00:00:00 2001
+From: Oleh Nykyforchyn <oleh.nyk@gmail.com>
+Date: Sat, 2 Aug 2025 00:38:13 +0300
+Subject: [PATCH 4/4] xserver: hw/xfree86/config: update xorg.conf man page
+
+It is patch 4/4 of a series that provides a convenient way to specify
+IgnoreABI on a per-driver basis.
+
+This patch updates the man page.
+
+Signed-off-by: Oleh Nykyforchyn <oleh.nyk@gmail.com>
+---
+ hw/xfree86/man/xorg.conf.man | 32 ++++++++++++++++++++++++++++----
+ 1 file changed, 28 insertions(+), 4 deletions(-)
+
+diff --git a/hw/xfree86/man/xorg.conf.man b/hw/xfree86/man/xorg.conf.man
+index b677f5d4a..b014f60ca 100644
+--- a/hw/xfree86/man/xorg.conf.man
++++ b/hw/xfree86/man/xorg.conf.man
+@@ -1292,11 +1292,11 @@ When an output device has been matched to the
+ .B OutputClass
+ section, any
+ .B Option
+-entries are applied to the device. One
++entries are applied to the device. Three
+ .B OutputClass
+-specific
++specific kinds of
+ .B Option
+-is recognized. See the
++are recognized. See the
+ .B Device
+ section below for a description of the remaining
+ .B Option
+@@ -1321,7 +1321,7 @@ If multiple output devices match an
+ section with the
+ .B HotplugDriver
+ option, the first one enumerated becomes the hotplug driver.
+-A
++An
+ .B OutputClass
+ Section may contain
+ .B ModulePath
+@@ -1336,6 +1336,30 @@ are pre-pended to the search path for loadable Xorg server modules. See
+ in the
+ .B Files
+ section for more info.
++.TP 7
++.BI "Option \*qIgnoreABI\*q \*q" boolean \*q
++If set, this option makes driver loader ignore module ABI, which may be necessary
++to use legacy proprietary NVidia drivers. If
++.PP
++.RS 7
++.nf
++.B  "Section \*qOutputClass\*q"
++.BI  "    Identifier  \*q" AnyName \*q
++.BI  "    MatchDriver  \*q" kernel_driver \*q
++.BI  "    Driver  \*q" X_driver \*q
++.BI  "    Option  \*q" IgnoreABI \*q
++.B  "EndSection
++.fi
++.RE
++.PP
++.RS 7
++appears, and a device with
++.I kernel_driver
++is found, then
++.I X_driver
++for it will be loaded regardless of its ABI version. See
++.IR /usr/share/X11/xorg.conf.d/10-nvidia.conf
++for an example.
+ .SH "DEVICE SECTION"
+ The config file may have multiple
+ .B Device
+-- 
+2.47.1
+

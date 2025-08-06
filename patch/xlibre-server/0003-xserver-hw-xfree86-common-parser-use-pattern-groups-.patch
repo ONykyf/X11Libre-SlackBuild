@@ -1,4 +1,4 @@
-From b841b34819d8fd017028d203eba98a6b41ff2362 Mon Sep 17 00:00:00 2001
+From 798f7df456e5f01a4b309c5746212aed9ffa31a8 Mon Sep 17 00:00:00 2001
 From: Oleh Nykyforchyn <oleh.nyk@gmail.com>
 Date: Wed, 23 Jul 2025 17:35:54 +0300
 Subject: [PATCH 3/5] xserver: hw/xfree86/{common,parser}: use pattern groups
@@ -24,10 +24,10 @@ Signed-off-by: Oleh Nykyforchyn <oleh.nyk@gmail.com>
  7 files changed, 247 insertions(+), 239 deletions(-)
 
 diff --git a/hw/xfree86/common/xf86Xinput.c b/hw/xfree86/common/xf86Xinput.c
-index 5511507dd..639209041 100644
+index 79d2b057c..6edba6a6d 100644
 --- a/hw/xfree86/common/xf86Xinput.c
 +++ b/hw/xfree86/common/xf86Xinput.c
-@@ -529,82 +529,96 @@ HostOS(void)
+@@ -528,82 +528,96 @@ HostOS(void)
  #endif
  }
  
@@ -180,7 +180,7 @@ index 5511507dd..639209041 100644
              return FALSE;
      }
  
-@@ -620,34 +634,34 @@ static Bool
+@@ -619,34 +633,34 @@ static Bool
  InputClassMatches(const XF86ConfInputClassPtr iclass, const InputInfoPtr idev,
                    const InputAttributes * attrs)
  {
@@ -224,7 +224,7 @@ index 5511507dd..639209041 100644
          return FALSE;
  
      /*
-@@ -661,7 +675,7 @@ InputClassMatches(const XF86ConfInputClassPtr iclass, const InputInfoPtr idev,
+@@ -660,7 +674,7 @@ InputClassMatches(const XF86ConfInputClassPtr iclass, const InputInfoPtr idev,
          if (!attrs->tags)
              return FALSE;
          for (tag = attrs->tags, match = FALSE; *tag; tag++) {
@@ -233,7 +233,7 @@ index 5511507dd..639209041 100644
                  match = TRUE;
                  break;
              }
-@@ -670,12 +684,17 @@ InputClassMatches(const XF86ConfInputClassPtr iclass, const InputInfoPtr idev,
+@@ -669,12 +683,17 @@ InputClassMatches(const XF86ConfInputClassPtr iclass, const InputInfoPtr idev,
              return FALSE;
      }
  

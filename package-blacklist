@@ -56,7 +56,7 @@ xlibre-input-joystick
 xlibre-input-keyboard
 xlibre-input-mouse
 xlibre-input-penmount
-xlibre-input-void
+#xlibre-input-void
 xlibre-video-apm
 xlibre-video-ark
 xlibre-video-ast

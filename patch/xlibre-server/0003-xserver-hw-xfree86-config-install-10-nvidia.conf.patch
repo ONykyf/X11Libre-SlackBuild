@@ -1,0 +1,49 @@
+From e93b5c50edb896994627c15de86b0fa1ce6c74ef Mon Sep 17 00:00:00 2001
+From: Oleh Nykyforchyn <oleh.nyk@gmail.com>
+Date: Sat, 2 Aug 2025 00:37:48 +0300
+Subject: [PATCH 3/4] xserver: hw/xfree86/config: install 10-nvidia.conf
+
+It is patch 3/4 of a series that provides a convenient way to specify
+IgnoreABI on a per-driver basis.
+
+This patch installs a /usr/share/X11/xorg.conf.d/10-nvidis.conf file with
+an OutputClass that makes the loader ignore ABI for all devices managed by
+the nvidia driver.
+
+Signed-off-by: Oleh Nykyforchyn <oleh.nyk@gmail.com>
+---
+ config/10-nvidia.conf | 8 ++++++++
+ config/meson.build    | 2 ++
+ 2 files changed, 10 insertions(+)
+ create mode 100644 config/10-nvidia.conf
+
+diff --git a/config/10-nvidia.conf b/config/10-nvidia.conf
+new file mode 100644
+index 000000000..1fb4233ff
+--- /dev/null
++++ b/config/10-nvidia.conf
+@@ -0,0 +1,8 @@
++# Make nvidia driver ignore ABI by default
++
++Section "OutputClass"
++	Identifier "NVidia"
++	MatchDriver "nvidia"
++	Driver "nvidia"
++	Option "IgnoreABI"
++EndSection
+diff --git a/config/meson.build b/config/meson.build
+index 15f21a053..0c634d04b 100644
+--- a/config/meson.build
++++ b/config/meson.build
+@@ -26,6 +26,8 @@ endif
+ if build_xorg
+     install_data('10-quirks.conf',
+                  install_dir: join_paths(get_option('datadir'), 'X11/xorg.conf.d'))
++    install_data('10-nvidia.conf',
++                 install_dir: join_paths(get_option('datadir'), 'X11/xorg.conf.d'))
+ endif
+ 
+ libxserver_config = static_library('xserver_config',
+-- 
+2.47.1
+
