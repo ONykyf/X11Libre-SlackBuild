@@ -1,0 +1,21 @@
+--- xserver-xlibre-xserver-25.0.0.8/include/os.h.orig	2025-08-07 02:18:18.375136684 +0300
++++ xserver-xlibre-xserver-25.0.0.8/include/os.h	2025-08-07 02:17:53.411135885 +0300
+@@ -122,6 +122,8 @@
+                                    CARD32 time,
+                                    void *arg);
+ 
++extern _X_EXPORT Bool TimerForce(OsTimerPtr);
++
+ #define TimerAbsolute (1<<0)
+ #define TimerForceOld (1<<1)
+ 
+--- xserver-xlibre-xserver-25.0.0.8/os/osdep.h.orig	2025-08-07 02:16:40.285133545 +0300
++++ xserver-xlibre-xserver-25.0.0.8/os/osdep.h	2025-08-07 02:16:57.440134094 +0300
+@@ -125,7 +125,6 @@
+ 
+ /* OsTimer functions */
+ void TimerInit(void);
+-Bool TimerForce(OsTimerPtr timer);
+ 
+ #ifdef WIN32
+ #include <X11/Xwinsock.h>

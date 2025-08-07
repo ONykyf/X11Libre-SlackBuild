@@ -41,3 +41,6 @@ cat $CWD/patch/xlibre-server/xlibre-xserver-update-man-ignore-abi.patch | patch 
 # Adjustments for legacy nvidia DDX drivers:
 cat $CWD/patch/xlibre-server/nvidia_padding.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
 cat $CWD/patch/xlibre-server/nvidia_export_no_damage_extension.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+
+# Re-export TimerForce to make nvidia-390 happy:
+cat $CWD/patch/xlibre-server/xlibre-xserver-reexport-timerforce.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
