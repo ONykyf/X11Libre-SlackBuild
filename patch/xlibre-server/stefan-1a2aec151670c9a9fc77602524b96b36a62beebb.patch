@@ -1,0 +1,70 @@
+From 1a2aec151670c9a9fc77602524b96b36a62beebb Mon Sep 17 00:00:00 2001
+From: stefan11111 <stefan11111@shitposting.expert>
+Date: Mon, 28 Jul 2025 20:33:11 +0300
+Subject: [PATCH] xfree86: loader: Ignore abi mismatch for the proprietary
+ nvidia DDX
+
+This is a proprietary DDX driver made by nvidia.
+We can't rebuild it against Xlibre, so the abi check would always fail.
+
+See: https://github.com/X11Libre/xserver/pull/262
+See: https://github.com/X11Libre/xserver/issues/447
+See: https://forums.gentoo.org/viewtopic-t-1174826.html
+
+Signed-off-by: stefan11111 <stefan11111@shitposting.expert>
+---
+ hw/xfree86/loader/loader.c  | 5 ++++-
+ hw/xfree86/loader/loader.h  | 2 ++
+ hw/xfree86/loader/loadmod.c | 3 +++
+ 3 files changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/hw/xfree86/loader/loader.c b/hw/xfree86/loader/loader.c
+index 5af7a54f3e..2f540cff0a 100644
+--- a/hw/xfree86/loader/loader.c
++++ b/hw/xfree86/loader/loader.c
+@@ -148,6 +148,8 @@ LoaderUnload(const char *name, void *handle)
+ 
+ unsigned long LoaderOptions = 0;
+ 
++Bool is_nvidia_proprietary = FALSE;
++
+ void
+ LoaderSetOptions(unsigned long opts)
+ {
+@@ -157,7 +159,8 @@ LoaderSetOptions(unsigned long opts)
+ Bool
+ LoaderShouldIgnoreABI(void)
+ {
+-    return (LoaderOptions & LDR_OPT_ABI_MISMATCH_NONFATAL) != 0;
++    /* The nvidia proprietary DDX driver calls this deprecated function */
++    return is_nvidia_proprietary || (LoaderOptions & LDR_OPT_ABI_MISMATCH_NONFATAL);
+ }
+ 
+ int
+diff --git a/hw/xfree86/loader/loader.h b/hw/xfree86/loader/loader.h
+index 4e83730a27..3ee9c075b2 100644
+--- a/hw/xfree86/loader/loader.h
++++ b/hw/xfree86/loader/loader.h
+@@ -70,6 +70,8 @@ extern const ModuleVersions LoaderVersionInfo;
+ 
+ extern unsigned long LoaderOptions;
+ 
++extern Bool is_nvidia_proprietary;
++
+ /* Internal Functions */
+ void *LoaderOpen(const char *, int *);
+ 
+diff --git a/hw/xfree86/loader/loadmod.c b/hw/xfree86/loader/loadmod.c
+index 2cdf91fd23..6a96d69af6 100644
+--- a/hw/xfree86/loader/loadmod.c
++++ b/hw/xfree86/loader/loadmod.c
+@@ -672,6 +672,9 @@ LoadModule(const char *module, void *options, const XF86ModReqInfo *modreq,
+ 
+     LogMessageVerb(X_INFO, 3, "LoadModule: \"%s\"", module);
+ 
++    /* Ignore abi check for the nvidia proprietary DDX driver */
++    is_nvidia_proprietary = !memcmp(module, "nvidia", sizeof("nvidia"));
++
+     patterns = InitPatterns(NULL);
+     name = LoaderGetCanonicalName(module, patterns);
+     noncanonical = (name && strcmp(module, name) != 0);

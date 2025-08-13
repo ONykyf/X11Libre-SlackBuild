@@ -1,0 +1,551 @@
+--- xserver-xlibre-xserver-25.0.0.8/hw/xfree86/loader/loader.c.orig	2025-08-12 14:18:55.233258388 +0300
++++ xserver-xlibre-xserver-25.0.0.8/hw/xfree86/loader/loader.c	2025-08-12 14:18:55.254224478 +0300
+@@ -113,6 +113,7 @@
+ #endif /* LEGACY_NVIDIA_PADDING */
+ 
+     xorg_list_init(&LoaderIgnoreABIList);
++    LoaderInitPath();
+ }
+ 
+ void
+@@ -124,6 +125,7 @@
+         free(item->name);
+         free(item);
+     }
++    LoaderClosePath();
+ }
+ 
+ /* Public Interface to the loader. */
+--- xserver-xlibre-xserver-25.0.0.8/hw/xfree86/loader/loaderProcs.h.orig	2025-08-12 14:18:55.233562267 +0300
++++ xserver-xlibre-xserver-25.0.0.8/hw/xfree86/loader/loaderProcs.h	2025-08-12 14:18:55.255531364 +0300
+@@ -74,7 +74,10 @@
+ ModuleDescPtr LoadModule(const char *, void *, const XF86ModReqInfo *, int *);
+ ModuleDescPtr DuplicateModule(ModuleDescPtr mod, ModuleDescPtr parent);
+ void UnloadDriver(ModuleDescPtr);
+-void LoaderSetPath(const char *path);
++
++void LoaderSetPath(const char *driver, const char *path);
++void LoaderInitPath(void);
++void LoaderClosePath(void);
+ 
+ void LoaderUnload(const char *, void *);
+ unsigned long LoaderGetModuleVersion(ModuleDescPtr mod);
+--- xserver-xlibre-xserver-25.0.0.8/hw/xfree86/loader/loadmod.c.orig	2025-08-12 14:18:55.224653910 +0300
++++ xserver-xlibre-xserver-25.0.0.8/hw/xfree86/loader/loadmod.c	2025-08-12 14:24:22.504586958 +0300
+@@ -101,6 +101,32 @@
+ 
+ static char **defaultPathList = NULL;
+ 
++typedef struct {
++    struct xorg_list entry;
++    char *name;
++    char **paths;
++} LoaderModulePathListItem;
++
++struct xorg_list modulePathLists;
++
++void LoaderInitPath(void) {
++    /* defaultPathList is already set in xf86Init */
++    xorg_list_init(&modulePathLists);
++}
++
++void LoaderClosePath(void) {
++    LoaderModulePathListItem *item, *next;
++    xorg_list_for_each_entry_safe(item, next, &modulePathLists, entry) {
++        xorg_list_del(&item->entry);
++        free(item->name);
++        if (item->paths)
++            FreeStringList(item->paths);
++        free(item);
++    }
++    xorg_list_del(&modulePathLists);
++    FreeStringList(defaultPathList);
++}
++
+ static Bool
+ PathIsAbsolute(const char *path)
+ {
+@@ -163,14 +189,72 @@
+     return list;
+ }
+ 
++/*
++ * Set a default search path or a search path for a specific driver
++ */
+ void
+-LoaderSetPath(const char *path)
++LoaderSetPath(const char *driver, const char *path)
+ {
+-    if (!path)
++    LoaderModulePathListItem *item;
++
++    if (!driver) {
++        if (path) {
++            FreeStringList(defaultPathList);
++            defaultPathList = InitPathList(path);
++        }
+         return;
++    }
+ 
+-    FreeStringList(defaultPathList);
+-    defaultPathList = InitPathList(path);
++    xorg_list_for_each_entry(item, &modulePathLists, entry) {
++        if (!strcmp(item->name, driver)) {
++            FreeStringList(item->paths);
++            if (path)
++                item->paths = InitPathList(path);
++            else
++                item->paths = NULL;
++            return;
++        }
++    }
++
++    item = malloc(sizeof(LoaderModulePathListItem));
++    if (item) {
++        item->name = strdup(driver);
++        if (path)
++            item->paths = InitPathList(path);
++        else
++            item->paths = NULL;
++    }
++    if (item && item->name && (!path || item->paths))
++        xorg_list_add(&item->entry, &modulePathLists);
++    else {
++        LogMessage(X_ERROR, "Failed to store module search path \"%s\" for module %s\n", path, driver);
++        if (item) {
++            if (item->name) free(item->name);
++            if (item->paths) FreeStringList(item->paths);
++            free(item);
++        }
++    }
++}
++
++/*
++ * Get a default search path or a search path for a specific driver
++ * and make it effective
++ */
++static char **
++LoaderGetPath(const char *module)
++{
++    LoaderModulePathListItem *item;
++
++    xorg_list_for_each_entry(item, &modulePathLists, entry) {
++        if (!strcmp(item->name, module)) {
++            if (item->paths)
++                return item->paths;
++            else
++                return defaultPathList;
++        }
++    }
++
++    return defaultPathList;
+ }
+ 
+ /* Standard set of module subdirectories to search, in order of preference */
+@@ -717,7 +801,7 @@
+         goto LoadModule_fail;
+     }
+ 
+-    pathlist = defaultPathList;
++    pathlist = LoaderGetPath(name);
+     if (!pathlist) {
+         /* This could be a calloc failure too */
+         if (errmaj)
+--- xserver-xlibre-xserver-25.0.0.8/hw/xfree86/common/xf86platformBus.c.orig	2025-08-12 14:18:55.232848714 +0300
++++ xserver-xlibre-xserver-25.0.0.8/hw/xfree86/common/xf86platformBus.c	2025-08-12 15:35:05.693433897 +0300
+@@ -200,9 +200,11 @@
+ 
+             LogMessageVerb(X_INFO, 1, "Applying OutputClass \"%s\" to %s\n",
+                            cl->identifier, path);
+-            LogMessageVerb(X_NONE, 1, "\tloading driver: %s\n", cl->driver);
+-
+-            xf86AddMatchedDriver(md, cl->driver);
++            if (cl->driver != NULL && *(cl->driver)) {
++                LogMessageVerb(X_NONE, 1, "\tloading driver: %s\n", cl->driver);
++                xf86AddMatchedDriver(md, cl->driver);
++            } else
++                LogMessageVerb(X_NONE, 1, "\tno driver specified\n");
+         }
+     }
+ }
+@@ -264,7 +266,8 @@
+     Bool pci = TRUE;
+     XF86ConfOutputClassPtr cl, cl_head = (xf86configptr) ?
+             xf86configptr->conf_outputclass_lst : NULL;
+-    char *old_path, *path = NULL;
++    char *driver_path, *path = NULL;
++    char *curr, *next, *copy;
+ 
+     config_odev_probe(xf86PlatformDeviceProbe);
+ 
+@@ -288,31 +291,113 @@
+             if (!OutputClassMatches(cl, &xf86_platform_devices[i]))
+                 continue;
+ 
+-            if (cl->modulepath && xf86ModPathFrom != X_CMDLINE) {
+-                old_path = path;
+-                XNFasprintf(&path, "%s,%s", cl->modulepath,
+-                            path ? path : xf86ModulePath);
+-                free(old_path);
+-                LogMessageVerb(X_CONFIG, 1, "OutputClass \"%s\" ModulePath extended to \"%s\"\n",
+-                               cl->identifier, path);
+-                LoaderSetPath(path);
++            if (xf86ModPathFrom != X_CMDLINE) {
++                if (cl->driver) {
++                    if (cl->modulepath) {
++                        if (*(cl->modulepath)) {
++                            XNFasprintf(&driver_path, "%s,%s", cl->modulepath, xf86ModulePath);
++                            LogMessageVerb(X_CONFIG, 1, "OutputClass \"%s\" ModulePath for driver %s overridden with \"%s\"\n",
++                                    cl->identifier, cl->driver, driver_path);
++                        } else {
++                            XNFasprintf(&driver_path, "%s", xf86ModulePath);
++                            LogMessageVerb(X_CONFIG, 1, "OutputClass \"%s\" ModulePath for driver %s reset to standard \"%s\"\n",
++                                    cl->identifier, cl->driver, driver_path);
++                        }
++                    } else {
++                        driver_path = NULL;
++                        LogMessageVerb(X_CONFIG, 1, "OutputClass \"%s\" ModulePath for driver %s reset to default\n",
++                                cl->identifier, cl->driver);
++                    }
++                    if (*(cl->driver)) LoaderSetPath(cl->driver, driver_path);
++                    if (cl->modules) {
++                        LogMessageVerb(X_CONFIG, 1, "    and for modules \"%s\" as well\n",
++                                cl->modules);
++                        XNFasprintf(&copy, "%s", cl->modules);
++                        curr = copy;
++                        while ((curr = strtok_r(curr, ",", &next))) {
++                            if (*curr) LoaderSetPath(curr, driver_path);
++                            curr = NULL;
++                        }
++                        free(copy);
++                    }
++                    free(driver_path);
++                }
++                else if (cl->modules) {
++                    if (cl->modulepath) {
++                        if (*(cl->modulepath)) {
++                            XNFasprintf(&driver_path, "%s,%s", cl->modulepath, xf86ModulePath);
++                            LogMessageVerb(X_CONFIG, 1, "OutputClass \"%s\" ModulePath for modules %s overridden with \"%s\"\n",
++                                    cl->identifier, cl->modules, driver_path);
++                        } else {
++                            XNFasprintf(&driver_path, "%s", xf86ModulePath);
++                            LogMessageVerb(X_CONFIG, 1, "OutputClass \"%s\" ModulePath for modules %s reset to standard \"%s\"\n",
++                                    cl->identifier, cl->modules, driver_path);
++                        }
++                    } else {
++                        driver_path = NULL;
++                        LogMessageVerb(X_CONFIG, 1, "OutputClass \"%s\" ModulePath for modules %s reset to default\n",
++                                cl->identifier, cl->modules);
++                    }
++                    XNFasprintf(&copy, "%s", cl->modules);
++                    curr = copy;
++                    while ((curr = strtok_r(curr, ",", &next))) {
++                        if (*curr) LoaderSetPath(curr, driver_path);
++                        curr = NULL;
++                    }
++                    free(copy);
++                } else {
++                        driver_path = path; /* Reuse for temporary storage */
++                        XNFasprintf(&path, "%s,%s", cl->modulepath,
++                                path ? path : xf86ModulePath);
++                        LogMessageVerb(X_CONFIG, 1, "OutputClass \"%s\" default ModulePath extended to \"%s\"\n",
++                                cl->identifier, path);
++                }
++                /* Otherwise global module search path is left unchanged */
+             }
+ 
+             if (xf86CheckBoolOption(cl->option_lst, "IgnoreABI", FALSE)) {
+                 if (cl->driver) {
+-                    LogMessageVerb(X_CONFIG, 1, "OutputClass \"%s\" sets %s to ignore ABI for \"%s\" managed by %s\n",
++                    LogMessageVerb(X_CONFIG, 1, "OutputClass \"%s\" sets driver %s to ignore ABI for \"%s\" managed by %s\n",
+                                cl->identifier, cl->driver, dev->attribs->path, dev->attribs->driver);
+-                    LoaderSetIgnoreABI(cl->driver);
++                    if (*(cl->driver)) LoaderSetIgnoreABI(cl->driver);
++                    if (cl->modules) {
++                        LogMessageVerb(X_CONFIG, 1, "    and for modules \"%s\" as well\n",
++                                cl->modules);
++                        XNFasprintf(&copy, "%s", cl->modules);
++                        curr = copy;
++                        while ((curr = strtok_r(curr, ",", &next))) {
++                            if (*curr) LoaderSetIgnoreABI(curr);
++                            curr = NULL;
++                        }
++                        free(copy);
++                    }
++                } else if (cl->modules) {
++                    LogMessageVerb(X_CONFIG, 1, "OutputClass \"%s\" sets modules %s to ignore ABI for \"%s\" managed by %s\n",
++                               cl->identifier, cl->modules, dev->attribs->path, dev->attribs->driver);
++                    XNFasprintf(&copy, "%s", cl->modules);
++                    curr = copy;
++                    while ((curr = strtok_r(curr, ",", &next))) {
++                        if (*curr) LoaderSetIgnoreABI(curr);
++                        curr = NULL;
++                    }
++                    free(copy);
++
+                 } else {
+                     LogMessageVerb(X_CONFIG, 1, "OutputClass \"%s\" requires to ignore ABI for \"%s\" managed by %s\n"
+-                            "   but Option \"Driver\" is not set\n",
++                            "   but neither \"Driver\" nor \"Module\" is not set\n",
+                             cl->identifier, dev->attribs->path, dev->attribs->driver);
+                 }
+             }
+         }
+     }
+ 
+-    free(path);
++    if (xf86ModPathFrom != X_CMDLINE) {
++        if (path) {
++            LoaderSetPath(NULL, path);
++            free(path);
++        } else
++            LoaderSetPath(NULL, xf86ModulePath);
++    }
+ 
+     /* First see if there is an OutputClass match marking a device as primary */
+     for (i = 0; i < xf86_num_platform_devices; i++) {
+--- xserver-xlibre-xserver-25.0.0.8/hw/xfree86/common/xf86Init.c.orig	2025-08-12 14:18:55.232367064 +0300
++++ xserver-xlibre-xserver-25.0.0.8/hw/xfree86/common/xf86Init.c	2025-08-12 14:18:55.258388426 +0300
+@@ -330,7 +330,7 @@
+         LoaderInit();
+ 
+         /* Tell the loader the default module search path */
+-        LoaderSetPath(xf86ModulePath);
++        LoaderSetPath(NULL, xf86ModulePath);
+ 
+         if (xf86Info.ignoreABI)
+             LoaderSetIgnoreAllABI();
+--- xserver-xlibre-xserver-25.0.0.8/hw/xfree86/doc/ddxDesign.xml.orig	2025-08-05 20:04:34.000000000 +0300
++++ xserver-xlibre-xserver-25.0.0.8/hw/xfree86/doc/ddxDesign.xml	2025-08-12 14:18:55.257224478 +0300
+@@ -4779,15 +4779,16@@
+ 
+       <blockquote><para>
+ 	  <programlisting>
+-    void LoaderSetPath(const char *path);
++    void LoaderSetPath(const char *driver, const char *path);
+ 	  </programlisting>
+ 	  <blockquote><para>
+-    The <function>LoaderSetPath()</function> function initialises a default
+-    module search path.  This must be called if calls to other functions
+-    are to be made without explicitly specifying a module search path.
+-    The search path <parameter>path</parameter> must be a string of one or more
+-    comma separated absolute paths.  Modules are expected to be located
+-    below these paths, possibly in subdirectories of these paths.
++    The <function>LoaderSetPath()</function> function initialises a search path
++    for <parameter>driver</parameter> module, if it is non-NULL,
++    or a default module search path otherwise.  This must be called if calls
++    to other functions are to be made without explicitly specifying a module
++    search path. The search path <parameter>path</parameter> must be a string
++    of one or more comma separated absolute paths.  Modules are expected to be
++    located below these paths, possibly in subdirectories of these paths.
+ 	    </para>
+ 
+ 	  </blockquote></para></blockquote>
+--- xserver-xlibre-xserver-25.0.0.8/hw/xfree86/parser/xf86tokens.h.orig	2025-08-12 14:35:37.365723873 +0300
++++ xserver-xlibre-xserver-25.0.0.8/hw/xfree86/parser/xf86tokens.h	2025-08-12 14:38:44.678396301 +0300
+@@ -255,6 +255,9 @@
+     NOMATCH_DRIVER,
+     NOMATCH_TAG,
+     NOMATCH_LAYOUT,
++
++    /* OutputClass Tokens */
++    MODULE,
+ } ParserTokens;
+ 
+ #endif                          /* _xf86_tokens_h */
+--- xserver-xlibre-xserver-25.0.0.8/hw/xfree86/parser/OutputClass.c.orig	2025-08-12 14:24:56.473113697 +0300
++++ xserver-xlibre-xserver-25.0.0.8/hw/xfree86/parser/OutputClass.c	2025-08-12 14:46:02.394054982 +0300
+@@ -38,6 +38,7 @@
+     {ENDSECTION, "endsection"},
+     {IDENTIFIER, "identifier"},
+     {DRIVER, "driver"},
++    {MODULE, "module"},
+     {MODULEPATH, "modulepath"},
+     {OPTION, "option"},
+     {MATCH_DRIVER, "matchdriver"},
+@@ -53,6 +54,7 @@
+         TestFree(ptr->identifier);
+         TestFree(ptr->comment);
+         TestFree(ptr->driver);
++        TestFree(ptr->modules);
+         TestFree(ptr->modulepath);
+ 
+         xf86freeMatchGroupList(&ptr->match_driver);
+@@ -99,6 +101,19 @@
+             else
+                 ptr->driver = xf86_lex_val.str;
+             break;
++        case MODULE:
++            if (xf86getSubToken(&(ptr->comment)) != XF86_TOKEN_STRING)
++                Error(QUOTE_MSG, "Module");
++            if (ptr->modules) {
++                char *path;
++                XNFasprintf(&path, "%s,%s", ptr->modules, xf86_lex_val.str);
++                free(xf86_lex_val.str);
++                free(ptr->modules);
++                ptr->modules = path;
++            } else {
++                ptr->modules = xf86_lex_val.str;
++            }
++            break;
+         case MODULEPATH:
+             if (xf86getSubToken(&(ptr->comment)) != XF86_TOKEN_STRING)
+                 Error(QUOTE_MSG, "ModulePath");
+@@ -159,6 +174,10 @@
+             fprintf(cf, "\tIdentifier      \"%s\"\n", ptr->identifier);
+         if (ptr->driver)
+             fprintf(cf, "\tDriver          \"%s\"\n", ptr->driver);
++        if (ptr->modules)
++            fprintf(cf, "\tModule          \"%s\"\n", ptr->modules);
++        if (ptr->modulepath)
++            fprintf(cf, "\tModulePath      \"%s\"\n", ptr->modulepath);
+ 
+         xorg_list_for_each_entry(group, &ptr->match_driver, entry) {
+             fprintf(cf, "\tMatchDriver     \"");
+--- xserver-xlibre-xserver-25.0.0.8/hw/xfree86/parser/xf86Parser.h.orig	2025-08-12 14:26:20.484265987 +0300
++++ xserver-xlibre-xserver-25.0.0.8/hw/xfree86/parser/xf86Parser.h	2025-08-12 14:26:34.442387259 +0300
+@@ -359,6 +359,7 @@
+     GenericListRec list;
+     char *identifier;
+     char *driver;
++    char *modules;
+     char *modulepath;
+     struct xorg_list match_driver;
+     XF86OptionPtr option_lst;
+--- xserver-xlibre-xserver-25.0.0.8/config/10-nvidia.conf.in.orig	2025-08-13 10:26:44.087024130 +0300
++++ xserver-xlibre-xserver-25.0.0.8/config/10-nvidia.conf.in	2025-08-13 10:26:44.108024131 +0300
+@@ -9,6 +9,8 @@
+ 	Identifier "NVidia"
+ 	MatchDriver "nvidia-drm"
+ 	Driver "nvidia"
++	Module "glx"
++	# Module "wfb"
+ 	Option "AllowEmptyInitialConfiguration"
+ 	#Add this to ServerFlags if your xserver does not recognize it in OutputClass
+ 	Option "IgnoreABI"
+--- xserver-xlibre-xserver-25.0.0.8/hw/xfree86/man/xorg.conf.man.orig	2025-08-13 10:26:44.090024130 +0300
++++ xserver-xlibre-xserver-25.0.0.8/hw/xfree86/man/xorg.conf.man	2025-08-13 11:00:38.471089231 +0300
+@@ -435,7 +435,7 @@
+ Multiple
+ .B ModulePath
+ entries may be specified, and they will be concatenated to build the
+-module search path used by the server.  The default module path is
++module search path used by the server.  The standard default module path is
+ .PP
+ .RS 11
+ @modulepath@
+@@ -1356,21 +1356,8 @@
+ section with the
+ .B HotplugDriver
+ option, the first one enumerated becomes the hotplug driver.
+-An
+-.B OutputClass
+-Section may contain
+-.B ModulePath
+-entries. When an output device matches an
+-.B OutputClass
+-section, any
+-.B ModulePath
+-entries in that
+-.B OutputClass
+-are pre-pended to the search path for loadable Xorg server modules. See
+-.B ModulePath
+-in the
+-.B Files
+-section for more info.
++.RE
++.PP
+ .TP 7
+ .BI "Option \*qIgnoreABI\*q \*q" boolean \*q
+ If set, this option makes driver loader ignore module ABI, which may be necessary
+@@ -1396,6 +1383,90 @@
+ no effect if DRM for a GPU is not enabled. See
+ .IR /usr/share/X11/xorg.conf.d/10-nvidia.conf
+ for an example.
++.RE
++.PP
++.TP 7
++An
++.B OutputClass
++section may contain multiple
++.TP 7
++.BI "ModulePath \*q" path \*q
++entries. When an output device with DRM enabled matches an
++.B OutputClass
++section and
++.B Driver
++.I \*qdriver\*q
++is set, then for this driver module, and all modules loaded until the next driver
++for a DRM-enabled GPU, a search path is created by prepending all
++.B ModulePath
++entries in that
++.B OutputClass
++to the
++.I standard
++search path \(lq@modulepath@\(rq for loadable Xorg server modules (not the
++.I effective
++default set path, which can undergo changes, see below). If there is a single
++.PP
++.RS 11
++.nf
++.B "    ModulePath  \*q\*q
++.fi
++.RE
++.PP
++.RS 7
++entry in an
++.B OutputClass
++for a
++.I driver
++, then only the
++.I standard
++path \(lq@modulepath@\(rq is searched from now on. It there no
++.B ModulePath
++entries at all, then the
++.I effective
++default search path (set globally) becomes active. Note that each
++.B OutputClass
++.I overrides
++search path for a
++.I driver
++, not
++.I extends
++it.
++.PP
++If a matching
++.B OutputClass
++contains
++.B ModulePath
++entries, but not a
++.B Driver
++entry, then paths are
++.I prepended
++to the
++.I effective
++default search path, which initially is standard \(lq@modulepath@\(rq, thus extending it.
++.PP
++These entries have no effect if a search path for loadable modules is set through command line. See
++.B ModulePath
++in the
++.B Files
++section for more info.
++.RE
++.PP
++.B OutputClass
++section may contain an arbitrary number of
++.PP
++.RS 4
++.nf
++.BI "    Module  \*q" module\*q
++.fi
++.RE
++.PP
++entries, which are quite equivalent to
++.B Device
++except that
++.I \*qmodule\*q
++is not added to the list of autoconfigured video drivers. This may be useful to extend
++ABI version ignoring and special search paths to modules like "glx".
+ .SH "DEVICE SECTION"
+ The config file may have multiple
+ .B Device

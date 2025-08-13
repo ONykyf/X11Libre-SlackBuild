@@ -18,7 +18,7 @@ zcat $CWD/patch/xlibre-server/0001-xfree86-use-modesetting-driver-by-default-on-
 # Only use Intel DDX with pre-gen4 hardware. Newer hardware will the the modesetting driver by default:
 zcat $CWD/patch/xlibre-server/06_use-intel-only-on-pre-gen4.diff.gz | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
 
-# Take into account divergence between master and maint-25.0
+# Take into account divergence between master and maint-25.0 in match groups handling.
 cat $CWD/patch/xlibre-server/e0440a0b428ac69f91b140f14820adaa6645a6c7.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
 
 # Patches to provide extended InputClass/OutpuClass deninition syntax.
@@ -32,15 +32,25 @@ cat $CWD/patch/xlibre-server/0005-xserver-hw-xfree86-man-update-manual-page.patc
 # Flush pending glamor operations before CloseScreen.
 cat $CWD/patch/xlibre-server/xlibre-xserver-flush-pending-before-closescreen.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
 
-# Simplify setting IgnoreABI for certain drivers:
+# Include stefan11111 patches to keep up with master.
+cat $CWD/patch/xlibre-server/stefan-1a2aec151670c9a9fc77602524b96b36a62beebb.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+cat $CWD/patch/xlibre-server/stefan-448028ef5e1960a2383a279228dee7b6601b7002.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+cat $CWD/patch/xlibre-server/stefan-5cf33895170f95e5c92e2c97b9b94785afa6fa79.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+
+# Adjustments for legacy nvidia DDX drivers.
+cat $CWD/patch/xlibre-server/0001-xserver-config-dix-include-make-the-padding-for-nvid.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+cat $CWD/patch/xlibre-server/0002-xserver-hw-xserver-lie-to-nvidia-about-older-ABI-if-.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+cat $CWD/patch/xlibre-server/0003-include-export-noDamageExtension.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+cat $CWD/patch/xlibre-server/0004-xserver-hw-xfree86-loader-Add-a-comment-to-LoaderGet.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+
+# Simplify setting IgnoreABI for certain drivers.
 cat $CWD/patch/xlibre-server/xlibre-xserver-set-ignore-abi.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
 cat $CWD/patch/xlibre-server/xlibre-xserver-outputclass-ignore-abi.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
 cat $CWD/patch/xlibre-server/xlibre-xserver-install-10-nvidia.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
 cat $CWD/patch/xlibre-server/xlibre-xserver-update-man-ignore-abi.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
 
-# Adjustments for legacy nvidia DDX drivers:
-cat $CWD/patch/xlibre-server/nvidia_padding.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
-cat $CWD/patch/xlibre-server/nvidia_export_no_damage_extension.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
-
-# Re-export TimerForce to make nvidia-390 happy:
+# Re-export TimerForce to make nvidia-390 happy.
 cat $CWD/patch/xlibre-server/xlibre-xserver-reexport-timerforce.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+
+# Improve ModulePath directive in OutputClass.
+cat $CWD/patch/xlibre-server/xlibre-xserver-module-path-list.patch | patch -p1 -b -z .orig --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }

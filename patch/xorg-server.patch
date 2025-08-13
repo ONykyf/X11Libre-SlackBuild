@@ -23,4 +23,3 @@ zcat $CWD/patch/xorg-server/06_use-intel-only-on-pre-gen4.diff.gz | patch -p1 --
 
 # Change a type from 1UL to 1ULL, which prevents a black screen on 32-bit Linux:
 zcat $CWD/patch/xorg-server/drmmode_display.c.1ULL.32-bit.fix.patch.gz | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
-

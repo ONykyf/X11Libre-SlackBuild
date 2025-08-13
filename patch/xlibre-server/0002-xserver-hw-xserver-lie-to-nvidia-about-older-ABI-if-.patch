@@ -1,0 +1,51 @@
+From 168e1d83d73b803fd53be2e9592a3e751b7cf2a0 Mon Sep 17 00:00:00 2001
+From: Oleh Nykyforchyn <oleh.nyk@gmail.com>
+Date: Fri, 8 Aug 2025 15:08:44 +0300
+Subject: [PATCH 2/4] xserver: hw/xserver: lie to nvidia about older ABI if
+ padding is in ScreenRec
+
+If a padding field is added to ScreenRec, tell NVidia drivers that we have
+the older ABI.
+
+Signed-off-by: Oleh Nykyforchyn <oleh.nyk@gmail.com>
+---
+ hw/xfree86/common/xf86Module.h | 5 +++++
+ hw/xfree86/loader/loader.c     | 5 +++++
+ 2 files changed, 10 insertions(+)
+
+diff --git a/hw/xfree86/common/xf86Module.h b/hw/xfree86/common/xf86Module.h
+index b26bdd7bb..f0ea17324 100644
+--- a/hw/xfree86/common/xf86Module.h
++++ b/hw/xfree86/common/xf86Module.h
+@@ -78,6 +78,11 @@
+ #define ABI_XINPUT_VERSION	SET_ABI_VERSION(26, 0)
+ #define ABI_EXTENSION_VERSION	SET_ABI_VERSION(11, 0)
+ 
++#ifdef LEGACY_NVIDIA_PADDING
++/* hack to get both modern and ancient nvidia DDX drivers to work at the same time */
++#define ABI_NVIDIA_VERSION      SET_ABI_VERSION(25, 2)
++#endif /* LEGACY_NVIDIA_PADDING */
++
+ #define MODINFOSTRING1	0xef23fdc5
+ #define MODINFOSTRING2	0x10dc023a
+ 
+diff --git a/hw/xfree86/loader/loader.c b/hw/xfree86/loader/loader.c
+index c866b18dd..baba403c3 100644
+--- a/hw/xfree86/loader/loader.c
++++ b/hw/xfree86/loader/loader.c
+@@ -172,7 +172,12 @@ LoaderGetABIVersion(const char *abiclass)
+         int version;
+     } classes[] = {
+         {ABI_CLASS_ANSIC, LoaderVersionInfo.ansicVersion},
++#ifdef LEGACY_NVIDIA_PADDING
++        {ABI_CLASS_VIDEODRV, is_nvidia_proprietary ?
++                             ABI_NVIDIA_VERSION : LoaderVersionInfo.videodrvVersion},
++#else
+         {ABI_CLASS_VIDEODRV, LoaderVersionInfo.videodrvVersion},
++#endif /* LEGACY_NVIDIA_PADDING */
+         {ABI_CLASS_XINPUT, LoaderVersionInfo.xinputVersion},
+         {ABI_CLASS_EXTENSION, LoaderVersionInfo.extensionVersion},
+         {NULL, 0}
+-- 
+2.47.1
+

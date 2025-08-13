@@ -153,6 +153,13 @@ Grab another cup of coffee and run:
 You will get a brand new Xorg... but what for?.
 
 
+##nVidia legacy proprietary drivers
+
+They are not included into this repository, but you can get [here](https://github.com/ONykyf/nvidia390-slackbuild) a slackbuild with sources for an _nvidia390_ driver that works nicely with this XLibre install.
+
+Work is ongoing on _nvidia470_ and other legacy nVidia drivers.
+
+
 ## Contact
 
 Please report any issues to [Issues · ONykyf/X11Libre-SlackBuild](https://github.com/ONykyf/X11Libre-SlackBuild/issues). In case you need help, want to report success or talk about other aspects of the build, just go to [Welcome to XLibre on Slackware Linux! · X11Libre · Discussion #217](https://github.com/orgs/X11Libre/discussions/217).

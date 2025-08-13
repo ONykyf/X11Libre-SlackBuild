@@ -1,6 +1,6 @@
-From 24adeb3f235fac1e511c53b71418e2faca5f02c3 Mon Sep 17 00:00:00 2001
+From 0f6eaa096528d4c2e7232f95e742504296b49fa5 Mon Sep 17 00:00:00 2001
 From: Oleh Nykyforchyn <oleh.nyk@gmail.com>
-Date: Sat, 2 Aug 2025 00:36:38 +0300
+Date: Sat, 9 Aug 2025 18:26:57 +0300
 Subject: [PATCH 2/4] xserver: hw/xfree86/common: introduce option IgnoreABI
  for OutputClass
 
@@ -14,12 +14,12 @@ Signed-off-by: Oleh Nykyforchyn <oleh.nyk@gmail.com>
 ---
  hw/xfree86/common/xf86Init.c        |  2 +
  hw/xfree86/common/xf86platformBus.c | 13 +++++
- hw/xfree86/loader/loader.c          | 73 ++++++++++++++++++++++++++++-
+ hw/xfree86/loader/loader.c          | 75 ++++++++++++++++++++++++++++-
  hw/xfree86/loader/loaderProcs.h     |  1 +
- 4 files changed, 87 insertions(+), 2 deletions(-)
+ 4 files changed, 89 insertions(+), 2 deletions(-)
 
 diff --git a/hw/xfree86/common/xf86Init.c b/hw/xfree86/common/xf86Init.c
-index af548e1ab..9ea8cbf91 100644
+index e891e9009..b39e099f0 100644
 --- a/hw/xfree86/common/xf86Init.c
 +++ b/hw/xfree86/common/xf86Init.c
 @@ -749,6 +749,8 @@ CloseInput(void)
@@ -32,10 +32,10 @@ index af548e1ab..9ea8cbf91 100644
  
  /*
 diff --git a/hw/xfree86/common/xf86platformBus.c b/hw/xfree86/common/xf86platformBus.c
-index f2fb4bd97..5783326c8 100644
+index a5585b884..002f385f0 100644
 --- a/hw/xfree86/common/xf86platformBus.c
 +++ b/hw/xfree86/common/xf86platformBus.c
-@@ -309,6 +309,7 @@ xf86platformProbe(void)
+@@ -273,6 +273,7 @@ xf86platformProbe(void)
      }
  
      for (i = 0; i < xf86_num_platform_devices; i++) {
@@ -43,7 +43,7 @@ index f2fb4bd97..5783326c8 100644
          char *busid = xf86_platform_odev_attributes(i)->busid;
  
          if (pci && busid && (strncmp(busid, "pci:", 4) == 0)) {
-@@ -332,6 +333,18 @@ xf86platformProbe(void)
+@@ -296,6 +297,18 @@ xf86platformProbe(void)
                                 cl->identifier, path);
                  LoaderSetPath(path);
              }
@@ -63,7 +63,7 @@ index f2fb4bd97..5783326c8 100644
      }
  
 diff --git a/hw/xfree86/loader/loader.c b/hw/xfree86/loader/loader.c
-index cc4b4fef5..e128ed714 100644
+index 722025322..d91613f4f 100644
 --- a/hw/xfree86/loader/loader.c
 +++ b/hw/xfree86/loader/loader.c
 @@ -52,6 +52,7 @@
@@ -74,14 +74,18 @@ index cc4b4fef5..e128ed714 100644
  #include "loader.h"
  #include "loaderProcs.h"
  
-@@ -68,9 +69,20 @@
+@@ -68,12 +69,24 @@
  extern void *xorg_symbols[];
  #endif
  
 +/* ABI versions for all modules are ignored */
- Bool LoaderIgnoresAllABI;
+ Bool LoaderIgnoreAllABI;
 +/* ABI version for a currently loaded module is ignored */
- Bool LoaderIgnoresABI;
+ Bool LoaderIgnoreABI;
+ #ifdef LEGACY_NVIDIA_PADDING
++/* Legacy proprietary nvidia drivers need hacks */
+ Bool is_nvidia_proprietary;
+ #endif /* LEGACY_NVIDIA_PADDING */
  
 +/* ABI for a module with this canonical name is ignored */
 +typedef struct {
@@ -95,10 +99,13 @@ index cc4b4fef5..e128ed714 100644
  void
  LoaderInit(void)
  {
-@@ -92,6 +104,18 @@ LoaderInit(void)
-                    GET_ABI_MINOR(LoaderVersionInfo.extensionVersion));
-     LoaderIgnoresAllABI = FALSE;
-     LoaderIgnoresABI = FALSE;
+@@ -96,8 +109,21 @@ LoaderInit(void)
+     LoaderIgnoreAllABI = FALSE;
+     LoaderIgnoreABI = FALSE;
+ #ifdef LEGACY_NVIDIA_PADDING
+     is_nvidia_proprietary = FALSE;
+ #endif /* LEGACY_NVIDIA_PADDING */
++
 +    xorg_list_init(&LoaderIgnoreABIList);
 +}
 +
@@ -114,7 +121,7 @@ index cc4b4fef5..e128ed714 100644
  }
  
  /* Public Interface to the loader. */
-@@ -151,25 +175,70 @@ LoaderUnload(const char *name, void *handle)
+@@ -155,25 +181,70 @@ LoaderUnload(const char *name, void *handle)
          dlclose(handle);
  }
  
@@ -128,30 +135,30 @@ index cc4b4fef5..e128ed714 100644
  void
  LoaderSetIgnoreAllABI(void)
  {
-     LoaderIgnoresAllABI = TRUE;
+     LoaderIgnoreAllABI = TRUE;
  }
  
 +/* Check whether ABI for a currently loaded module is ignored and set the flag respectively */
  Bool
  LoaderGetAndFlagIgnoreABI(const char *name)
  {
--    if (LoaderIgnoresAllABI)
+-    if (LoaderIgnoreAllABI)
 +    LoaderIgnoreABIItem *item;
 +
-+    if (LoaderIgnoresAllABI) {
-         LoaderIgnoresABI = TRUE;
--    return LoaderIgnoresABI;
++    if (LoaderIgnoreAllABI) {
+         LoaderIgnoreABI = TRUE;
+-    return LoaderIgnoreABI;
 +        return TRUE;
 +    }
 +
 +    xorg_list_for_each_entry(item, &LoaderIgnoreABIList, entry) {
 +        if (!strcmp(item->name, name)) {
-+            LoaderIgnoresABI = TRUE;
++            LoaderIgnoreABI = TRUE;
 +            return TRUE;
 +        }
 +    }
 +
-+    LoaderIgnoresABI = FALSE;
++    LoaderIgnoreABI = FALSE;
 +    return FALSE;
  }
  
@@ -161,7 +168,7 @@ index cc4b4fef5..e128ed714 100644
  {
 +    LoaderIgnoreABIItem *item;
 +
-+    if (LoaderIgnoresAllABI)
++    if (LoaderIgnoreAllABI)
 +        return;
 +
 +    xorg_list_for_each_entry(item, &LoaderIgnoreABIList, entry) {

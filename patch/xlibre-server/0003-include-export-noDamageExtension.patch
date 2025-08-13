@@ -1,19 +1,23 @@
-From 937edf3bee5f0652789f86761056b8528e178400 Mon Sep 17 00:00:00 2001
-From: stefan11111 <stefan11111@shitposting.expert>
-Date: Wed, 6 Aug 2025 00:07:00 +0300
-Subject: [PATCH] include: export noDamageExtension
+From 7ccad5a9701015a64b432b9586c5d90e2ca6b72a Mon Sep 17 00:00:00 2001
+From: Oleh Nykyforchyn <oleh.nyk@gmail.com>
+Date: Fri, 8 Aug 2025 15:33:06 +0300
+Subject: [PATCH 3/4] include: export noDamageExtension
+
+This is just
+10636d984131453b80c7e91943df5d5c727df9ad
+from stefan11111 <stefan11111@shitposting.expert>
 
 According to @felipe19930 in https://github.com/X11Libre/xserver/issues/310 ,
 this symbol is required by the 470 nvidia DDX driver.
 
-Signed-off-by: stefan11111 <stefan11111@shitposting.expert>
+Signed-off-by: Oleh Nykyforchyn <oleh.nyk@gmail.com>
 ---
  include/extinit.h    | 5 +++++
  miext/extinit_priv.h | 1 -
  2 files changed, 5 insertions(+), 1 deletion(-)
 
 diff --git a/include/extinit.h b/include/extinit.h
-index 0c93863f78..1b584ee834 100644
+index 0c93863f7..1b584ee83 100644
 --- a/include/extinit.h
 +++ b/include/extinit.h
 @@ -56,6 +56,11 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
@@ -29,7 +33,7 @@ index 0c93863f78..1b584ee834 100644
  #ifdef XINERAMA
  extern _X_EXPORT Bool noPanoramiXExtension;
 diff --git a/miext/extinit_priv.h b/miext/extinit_priv.h
-index c892c0c6a6..4090fed7b8 100644
+index c892c0c6a..4090fed7b 100644
 --- a/miext/extinit_priv.h
 +++ b/miext/extinit_priv.h
 @@ -8,7 +8,6 @@
@@ -40,3 +44,6 @@ index c892c0c6a6..4090fed7b8 100644
  extern Bool noDbeExtension;
  extern Bool noDPMSExtension;
  extern Bool noGlxExtension;
+-- 
+2.47.1
+

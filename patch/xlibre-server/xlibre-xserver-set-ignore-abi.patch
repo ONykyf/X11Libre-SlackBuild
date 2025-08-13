@@ -1,28 +1,26 @@
-From 5c81ca8e6bd788f5c9fc0607dafac793850a59af Mon Sep 17 00:00:00 2001
+From ea0f75a3d46f606a2cd16201412027e08adf68a3 Mon Sep 17 00:00:00 2001
 From: Oleh Nykyforchyn <oleh.nyk@gmail.com>
-Date: Fri, 1 Aug 2025 15:41:29 +0300
-Subject: [PATCH 1/4]  xserver: hw/xfree86/loader: simplify setting IgnoreABI
+Date: Sat, 9 Aug 2025 18:16:41 +0300
+Subject: [PATCH 1/4] xfree86: {common,loader}: simplify setting IgnoreABI
  option
 
 It is patch 1/4 of a series that provides a convenient way to specify
 IgnoreABI on a per-driver basis.
 
-IgnoreABI option is kept in a single bit of an unsigned long variable
-LoaderOptions that has no other use. This patch replaces it with
-two Bool variables LoaderIgnoresABI (specific) and  LoaderIgnoresAllABI
-(server-wide).
+Two Bool variables LoaderIgnoreABI (specific) and  LoaderIgnoresllABI
+(server-wide) are used to control loader and modules behavior.
 
 Signed-off-by: Oleh Nykyforchyn <oleh.nyk@gmail.com>
 ---
  hw/xfree86/common/xf86Init.c    |  7 +++----
- hw/xfree86/loader/loader.c      | 24 ++++++++++++++++++++----
- hw/xfree86/loader/loader.h      |  3 ++-
- hw/xfree86/loader/loaderProcs.h |  8 +++-----
- hw/xfree86/loader/loadmod.c     | 11 +++++++----
- 5 files changed, 35 insertions(+), 18 deletions(-)
+ hw/xfree86/loader/loader.c      | 32 ++++++++++++++++++++++++--------
+ hw/xfree86/loader/loader.h      |  6 ++++--
+ hw/xfree86/loader/loaderProcs.h |  6 +++---
+ hw/xfree86/loader/loadmod.c     | 33 ++++++++++++++++++++-------------
+ 5 files changed, 54 insertions(+), 30 deletions(-)
 
 diff --git a/hw/xfree86/common/xf86Init.c b/hw/xfree86/common/xf86Init.c
-index 41bcb9983..af548e1ab 100644
+index f9a3d994d..e891e9009 100644
 --- a/hw/xfree86/common/xf86Init.c
 +++ b/hw/xfree86/common/xf86Init.c
 @@ -331,9 +331,8 @@ InitOutput(ScreenInfo * pScreenInfo, int argc, char **argv)
@@ -30,7 +28,7 @@ index 41bcb9983..af548e1ab 100644
          LoaderSetPath(xf86ModulePath);
  
 -        if (xf86Info.ignoreABI) {
--            LoaderSetOptions(LDR_OPT_ABI_MISMATCH_NONFATAL);
+-            LoaderSetIgnoreAbi();
 -        }
 +        if (xf86Info.ignoreABI)
 +            LoaderSetIgnoreAllABI();
@@ -41,138 +39,177 @@ index 41bcb9983..af548e1ab 100644
          return 1;
      }
      if (!strcmp(argv[i], "-ignoreABI")) {
--        LoaderSetOptions(LDR_OPT_ABI_MISMATCH_NONFATAL);
+-        LoaderSetIgnoreAbi();
 +        LoaderSetIgnoreAllABI();
          return 1;
      }
      if (!strcmp(argv[i], "-verbose")) {
 diff --git a/hw/xfree86/loader/loader.c b/hw/xfree86/loader/loader.c
-index 5af7a54f3..cc4b4fef5 100644
+index 19ed31a92..722025322 100644
 --- a/hw/xfree86/loader/loader.c
 +++ b/hw/xfree86/loader/loader.c
-@@ -68,6 +68,9 @@
+@@ -68,6 +68,12 @@
  extern void *xorg_symbols[];
  #endif
  
-+Bool LoaderIgnoresAllABI;
-+Bool LoaderIgnoresABI;
++Bool LoaderIgnoreAllABI;
++Bool LoaderIgnoreABI;
++#ifdef LEGACY_NVIDIA_PADDING
++Bool is_nvidia_proprietary;
++#endif /* LEGACY_NVIDIA_PADDING */
 +
  void
  LoaderInit(void)
  {
-@@ -87,6 +90,8 @@ LoaderInit(void)
+@@ -87,6 +93,11 @@ LoaderInit(void)
      LogMessageVerb(X_NONE, 2, "\t%s : %d.%d\n", ABI_CLASS_EXTENSION,
                     GET_ABI_MAJOR(LoaderVersionInfo.extensionVersion),
                     GET_ABI_MINOR(LoaderVersionInfo.extensionVersion));
-+    LoaderIgnoresAllABI = FALSE;
-+    LoaderIgnoresABI = FALSE;
++    LoaderIgnoreAllABI = FALSE;
++    LoaderIgnoreABI = FALSE;
++#ifdef LEGACY_NVIDIA_PADDING
++    is_nvidia_proprietary = FALSE;
++#endif /* LEGACY_NVIDIA_PADDING */
  }
  
  /* Public Interface to the loader. */
-@@ -146,18 +151,29 @@ LoaderUnload(const char *name, void *handle)
+@@ -146,22 +155,29 @@ LoaderUnload(const char *name, void *handle)
          dlclose(handle);
  }
  
--unsigned long LoaderOptions = 0;
+-Bool LoaderIgnoreAbi = FALSE;
+-Bool is_nvidia_proprietary = FALSE;
 +void
 +LoaderSetIgnoreAllABI(void)
 +{
-+    LoaderIgnoresAllABI = TRUE;
++    LoaderIgnoreAllABI = TRUE;
 +}
 +
 +Bool
 +LoaderGetAndFlagIgnoreABI(const char *name)
 +{
-+    if (LoaderIgnoresAllABI)
-+        LoaderIgnoresABI = TRUE;
-+    return LoaderIgnoresABI;
++    if (LoaderIgnoreAllABI)
++        LoaderIgnoreABI = TRUE;
++    return LoaderIgnoreABI;
 +}
  
  void
--LoaderSetOptions(unsigned long opts)
+-LoaderSetIgnoreAbi(void)
 +LoaderSetIgnoreABI(const char *name)
  {
--    LoaderOptions |= opts;
+-    /* Only used to keep consistency with the loader api */
+-    /* This really doesn't have to be a proc */
+-    LoaderIgnoreAbi = TRUE;
  }
  
  Bool
  LoaderShouldIgnoreABI(void)
  {
--    return (LoaderOptions & LDR_OPT_ABI_MISMATCH_NONFATAL) != 0;
-+    return LoaderIgnoresABI;
+-    /* The nvidia proprietary DDX driver calls this deprecated function */
+-    return is_nvidia_proprietary || LoaderIgnoreAbi;
++    return LoaderIgnoreABI;
  }
  
  int
 diff --git a/hw/xfree86/loader/loader.h b/hw/xfree86/loader/loader.h
-index 4e83730a2..b5f1c6190 100644
+index 43d6b5c5a..e4430ef58 100644
 --- a/hw/xfree86/loader/loader.h
 +++ b/hw/xfree86/loader/loader.h
-@@ -68,7 +68,8 @@ typedef struct {
+@@ -68,9 +68,11 @@ typedef struct {
  } ModuleVersions;
  extern const ModuleVersions LoaderVersionInfo;
  
--extern unsigned long LoaderOptions;
-+extern Bool LoaderIgnoresAllABI;
-+extern Bool LoaderIgnoresABI;
+-extern Bool LoaderIgnoreAbi;
+-
++extern Bool LoaderIgnoreAllABI;
++extern Bool LoaderIgnoreABI;
++#ifdef LEGACY_NVIDIA_PADDING
+ extern Bool is_nvidia_proprietary;
++#endif /* LEGACY_NVIDIA_PADDING */
  
  /* Internal Functions */
  void *LoaderOpen(const char *, int *);
 diff --git a/hw/xfree86/loader/loaderProcs.h b/hw/xfree86/loader/loaderProcs.h
-index 8b16cb7ea..964169d60 100644
+index fc96be2d3..964169d60 100644
 --- a/hw/xfree86/loader/loaderProcs.h
 +++ b/hw/xfree86/loader/loaderProcs.h
-@@ -78,12 +78,10 @@ void LoaderSetPath(const char *path);
+@@ -78,9 +78,9 @@ void LoaderSetPath(const char *path);
  void LoaderUnload(const char *, void *);
  unsigned long LoaderGetModuleVersion(ModuleDescPtr mod);
  
 -void LoaderResetOptions(void);
--void LoaderSetOptions(unsigned long);
+-
+-void LoaderSetIgnoreAbi(void);
 +void LoaderSetIgnoreAllABI(void);
 +Bool LoaderGetAndFlagIgnoreABI(const char *);
 +void LoaderSetIgnoreABI(const char *);
  
  const char **LoaderListDir(const char *, const char **);
  
--/* Options for LoaderSetOptions */
--#define LDR_OPT_ABI_MISMATCH_NONFATAL		0x0001
--
- #endif                          /* _LOADERPROCS_H */
 diff --git a/hw/xfree86/loader/loadmod.c b/hw/xfree86/loader/loadmod.c
-index 2cdf91fd2..0c0a9088a 100644
+index 1fd1f15df..6237daf21 100644
 --- a/hw/xfree86/loader/loadmod.c
 +++ b/hw/xfree86/loader/loadmod.c
-@@ -458,26 +458,26 @@ CheckVersion(const char *module, XF86ModuleVersionInfo * data,
+@@ -457,19 +457,27 @@ CheckVersion(const char *module, XF86ModuleVersionInfo * data,
+             vermaj = GET_ABI_MAJOR(ver);
              vermin = GET_ABI_MINOR(ver);
              if (abimaj != vermaj) {
-                 MessageType errtype;
--                if (LoaderOptions & LDR_OPT_ABI_MISMATCH_NONFATAL)
-+                if (LoaderIgnoresABI)
-                     errtype = X_WARNING;
-                 else
-                     errtype = X_ERROR;
-                 LogMessageVerb(errtype, 0, "%s: module ABI major version (%d) "
+-                LogMessageVerb(LoaderIgnoreAbi ? X_WARNING : X_ERROR, 0,
+-                               "%s: module ABI major version (%d) "
++                MessageType errtype;
++                if (LoaderIgnoreABI)
++                    errtype = X_WARNING;
++                else
++                    errtype = X_ERROR;
++                LogMessageVerb(errtype, 0, "%s: module ABI major version (%d) "
                                 "doesn't match the server's version (%d)\n",
                                 module, abimaj, vermaj);
--                if (!(LoaderOptions & LDR_OPT_ABI_MISMATCH_NONFATAL))
-+                if (!LoaderIgnoresABI)
+-                if (!LoaderIgnoreAbi)
++                if (!LoaderIgnoreABI)
                      return FALSE;
              }
              else if (abimin > vermin) {
-                 MessageType errtype;
--                if (LoaderOptions & LDR_OPT_ABI_MISMATCH_NONFATAL)
-+                if (LoaderIgnoresABI)
-                     errtype = X_WARNING;
-                 else
-                     errtype = X_ERROR;
-                 LogMessageVerb(errtype, 0, "%s: module ABI minor version (%d) "
+-                LogMessageVerb(LoaderIgnoreAbi ? X_WARNING : X_ERROR, 0,
+-                               "%s: module ABI minor version (%d) "
++                MessageType errtype;
++                if (LoaderIgnoreABI)
++                    errtype = X_WARNING;
++                else
++                    errtype = X_ERROR;
++                LogMessageVerb(errtype, 0, "%s: module ABI minor version (%d) "
                                 "is newer than the server's version (%d)\n",
                                 module, abimin, vermin);
--                if (!(LoaderOptions & LDR_OPT_ABI_MISMATCH_NONFATAL))
-+                if (!LoaderIgnoresABI)
+-                if (!LoaderIgnoreAbi)
++                if (!LoaderIgnoreABI)
                      return FALSE;
              }
          }
-@@ -778,6 +778,9 @@ LoadModule(const char *module, void *options, const XF86ModReqInfo *modreq,
+@@ -664,8 +672,10 @@ LoadModule(const char *module, void *options, const XF86ModReqInfo *modreq,
+ 
+     LogMessageVerb(X_INFO, 3, "LoadModule: \"%s\"", module);
+ 
+-    /* Ignore abi check for the nvidia proprietary DDX driver */
++#ifdef LEGACY_NVIDIA_PADDING
++    /* Lie about ABI version to an nvidia proprietary DDX driver */
+     is_nvidia_proprietary = !memcmp(module, "nvidia", sizeof("nvidia"));
++#endif /* LEGACY_NVIDIA_PADDING */
+ 
+     patterns = InitPatterns(NULL);
+     name = LoaderGetCanonicalName(module, patterns);
+@@ -682,12 +692,6 @@ LoadModule(const char *module, void *options, const XF86ModReqInfo *modreq,
+         m = (char *) module;
+     }
+ 
+-    if (is_nvidia_proprietary && !LoaderIgnoreAbi) {
+-        /* warn every time this is hit */
+-        LogMessage(X_WARNING, "LoadModule: Implicitly ignoring abi mismatch "
+-                   "for the nvidia proprierary DDX driver\n");
+-    }
+-
+     /* Backward compatibility, vbe and int10 are merged into int10 now */
+     if (!strcmp(m, "vbe"))
+         m = name = strdup("int10");
+@@ -779,6 +783,9 @@ LoadModule(const char *module, void *options, const XF86ModReqInfo *modreq,
          setup = initdata->setup;
          teardown = initdata->teardown;
  

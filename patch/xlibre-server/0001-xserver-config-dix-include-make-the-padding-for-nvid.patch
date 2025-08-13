@@ -1,0 +1,113 @@
+From d916dd53bf1d068898ca7fb76c544432e4432cc5 Mon Sep 17 00:00:00 2001
+From: Oleh Nykyforchyn <oleh.nyk@gmail.com>
+Date: Fri, 8 Aug 2025 14:24:23 +0300
+Subject: [PATCH 1/4] xserver: {config,dix,include}: make the padding for
+ nvidia settable in config
+
+Legacy NVidia drivers need an older ABI with a field in ScreenRec, which is
+now dropped. It is convenient to make adding this field back a configuration
+option, which allows flexibility in the future depending on new NVidia releases.
+
+As it breaks ABI, the option is disabled by default until the next major release
+and intended for EXPERTS ONLY who need nvidia390 or nvidia470 drivers.
+
+Note that ALL DRIVERS should be rebuild if it is applied!
+
+Signed-off-by: Oleh Nykyforchyn <oleh.nyk@gmail.com>
+---
+ dix/pixmap.c                   | 6 ++++++
+ include/meson.build            | 3 +++
+ include/scrnintstr.h           | 5 +++++
+ include/xorg-server.h.meson.in | 3 +++
+ meson.build                    | 2 ++
+ meson_options.txt              | 3 +++
+ 6 files changed, 22 insertions(+)
+
+diff --git a/dix/pixmap.c b/dix/pixmap.c
+index bc3d83831..39d02cb49 100644
+--- a/dix/pixmap.c
++++ b/dix/pixmap.c
+@@ -87,6 +87,12 @@ PixmapScreenInit(ScreenPtr pScreen)
+     pScreen->totalPixmapSize =
+         BitmapBytePad(pixmap_size * 8);
+ 
++#ifdef LEGACY_NVIDIA_PADDING
++    /* This field is used by the 470 proprietary nvidia DDX driver, and should always be NULL */
++    /* NULL this out as it is no longer used */
++    pScreen->reserved_for_legacy_nvidia = NULL;
++#endif /* LEGACY_NVIDIA_PADDING */
++
+     return TRUE;
+ }
+ 
+diff --git a/include/meson.build b/include/meson.build
+index 6c14da6d7..9f6ed3a44 100644
+--- a/include/meson.build
++++ b/include/meson.build
+@@ -210,6 +210,9 @@ conf_data.set('MAXCLIENTS', 2048)
+ # Must be a power of 2 and <= MAXCLIENTS */
+ conf_data.set('DIX_LIMITCLIENTS', 256)
+ 
++# Legacy NVidia drivers (390, 470) use an older ABI and expect an additional field in ScreenRec */
++conf_data.set('LEGACY_NVIDIA_PADDING', legacy_nvidia_padding ? '1' : false)
++
+ # some drivers (eg. xf86-video-intel) still relying on this symbol being set
+ conf_data.set('COMPOSITE', '1')
+ 
+diff --git a/include/scrnintstr.h b/include/scrnintstr.h
+index 71ef762ea..4f0a64878 100644
+--- a/include/scrnintstr.h
++++ b/include/scrnintstr.h
+@@ -620,6 +620,11 @@ typedef struct _Screen {
+     SetScreenPixmapProcPtr SetScreenPixmap;
+     NameWindowPixmapProcPtr NameWindowPixmap;
+ 
++#ifdef LEGACY_NVIDIA_PADDING
++    /* This field is a padding that corrects fields position for legacy proprietary nvidia drivers */
++    void* reserved_for_legacy_nvidia;   /* should always be NULL */
++#endif /* LEGACY_NVIDIA_PADDING */
++
+     unsigned int totalPixmapSize;
+ 
+     MarkWindowProcPtr MarkWindow;
+diff --git a/include/xorg-server.h.meson.in b/include/xorg-server.h.meson.in
+index 07e7e64e5..7db8c0568 100644
+--- a/include/xorg-server.h.meson.in
++++ b/include/xorg-server.h.meson.in
+@@ -38,6 +38,9 @@
+ /* Support XDM-AUTH*-1 */
+ #mesondefine HASXDMAUTH
+ 
++/* Add a padding for legacy nvidia drivers that support old ABI */
++#mesondefine LEGACY_NVIDIA_PADDING
++
+ /* Define to 1 if you have the `reallocarray' function. */
+ #mesondefine HAVE_REALLOCARRAY
+ 
+diff --git a/meson.build b/meson.build
+index 3d2559ae3..ec0b17348 100644
+--- a/meson.build
++++ b/meson.build
+@@ -553,6 +553,8 @@ elif get_option('mitshm') == 'true'
+     build_mitshm = true
+ endif
+ 
++legacy_nvidia_padding = get_option('legacy_nvidia_padding')
++
+ m_dep = cc.find_library('m', required : false)
+ dl_dep = cc.find_library('dl', required : false)
+ 
+diff --git a/meson_options.txt b/meson_options.txt
+index 6077dca96..c66e73b69 100644
+--- a/meson_options.txt
++++ b/meson_options.txt
+@@ -145,3 +145,6 @@ option('devel-docs', type: 'combo', choices: ['true', 'false', 'auto'], value: '
+         description: 'Build development documentation')
+ option('docs-pdf', type: 'combo', choices: ['true', 'false', 'auto'], value: 'auto',
+         description: 'Whether to build PDF version of documentation. Setting is ignored if documentation is not built.')
++
++option('legacy_nvidia_padding', type: 'boolean', value: false,
++        description: 'EXPERT ONLY: Add a padding to ScreenRec to match an older ABI for legacy NVidia drivers')
+-- 
+2.47.1
+
