@@ -414,11 +414,12 @@
      XF86OptionPtr option_lst;
 --- xserver-xlibre-xserver-25.0.0.8/config/10-nvidia.conf.in.orig	2025-08-13 10:26:44.087024130 +0300
 +++ xserver-xlibre-xserver-25.0.0.8/config/10-nvidia.conf.in	2025-08-13 10:26:44.108024131 +0300
-@@ -9,6 +9,8 @@
+@@ -9,6 +9,9 @@
  	Identifier "NVidia"
  	MatchDriver "nvidia-drm"
  	Driver "nvidia"
 +	Module "glx"
++	Module "glxserver_nvidia"
 +	# Module "wfb"
  	Option "AllowEmptyInitialConfiguration"
  	#Add this to ServerFlags if your xserver does not recognize it in OutputClass
