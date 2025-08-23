@@ -1,5 +1,2 @@
 # make Emulate3Buttons a synonym for MiddleEmulation
 cat $CWD/patch/xlibre-input-libinput/xlibre-xf86-input-libinput-middleemulation-emulate3buttons.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
-
-# make sure that _GNU_SOURCE is defined before stdio.h
-cat $CWD/patch/xlibre-input-libinput/xlibre-xf86-input-libinput-define-_GNU_SOURCE-earlier.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
