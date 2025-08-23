@@ -1,4 +1,4 @@
-export CFLAGS="$SLKCFLAGS"
+export CFLAGS="$SLKCFLAGS -O0 -ggdb3"
 export CXXFLAGS="$SLKCFLAGS"
 
 rm -f ${SLACK_X_BUILD_DIR}/${PKGNAME}.make_failed

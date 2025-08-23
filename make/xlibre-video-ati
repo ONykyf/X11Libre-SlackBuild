@@ -1,0 +1,6 @@
+export CFLAGS="$SLKCFLAGS -O0 -ggdb3"
+if ! make $NUMJOBS ; then
+    touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.failed
+    continue
+  fi
+make install DESTDIR=$PKG
