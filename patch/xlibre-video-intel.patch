@@ -1,5 +1,2 @@
 # Some patches from Fedora's SRPM:
 zcat $CWD/patch/xlibre-video-intel/0001-sna-Avoid-clobbering-output-physical-size-with-xf86O.patch.gz | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
-
-# Fix build error because of moving MAXCLIENTS to xorg-server.h
-cat $CWD/patch/xlibre-video-intel/xf86-video-intel-maxclients.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
