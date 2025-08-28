@@ -1,6 +1,25 @@
 # X11Libre-SlackBuild
 
-This repository provides a Slackware-current X11 build tree modified to build [XLibre](https://github.com/X11Libre/xserver). The sources were imported from Slackware-current Xorg and the XLibre project on July 1, 2025 and are constantly updated.
+This repository provides a Slackware X11 build tree modified to build [XLibre](https://github.com/X11Libre/xserver). The sources were imported from Slackware-current Xorg and the XLibre project on July 1, 2025 and are constantly updated.
+
+
+## Prerequisites
+
+It is assumed that you have installed the entire X packages set. Some things of it will be necessary to build XLibre, another ones will be overwritten or upgraded during XLibre install. This set is not that large, so it's safer to install it completely.
+
+If you have a more or less recent Slackware-current, this is sufficient. Thanks to [rc-05](https://github.com/ONykyf/X11Libre-SlackBuild/issues/4#issuecomment-3220084418) it turned out that it is perfectly possible to build XLibre on a stable Slackware-15.0. All you have to do is:
+
+- to go to [slackware-15.0 testing directory](http://slackware.uk/slackware/slackware64-15.0/testing/packages/graphics-updates/), grab `libdrm-2.4.125-x86_64-1_slack15.0.txz` and `mesa-25.0.7-x86_64-2_slack15.0.txz`, and run
+```shell
+upgradepkg --reinstall libdrm-2.4.125-x86_64-1_slack15.0.txz mesa-25.0.7-x86_64-2_slack15.0.txz
+```
+to replace `libdrm` and `mesa` with newer versions;
+
+- to take `llvm-20.1.8-x86_64-1_slack15.0.txz` at [slackware-15.0 extra directory](http://slackware.uk/slackware/slackware64-15.0/extra/) and install it:
+```shell
+installpkg llvm-20.1.8-x86_64-1_slack15.0.txz
+```
+side-by-side with the existing older LLVM versions, for X drivers to build and function correctly.
 
 
 ## Preparing for Install
@@ -114,6 +133,10 @@ pip3 install strenum
 After the build you will find the built packages in `/tmp/x11-build/*.txz`. Please keep them in a safe place. You may also use them to install XLibre on another computer. In the `x11-build` directory there will also be subdirectories containing source code. You may remove them if you are not curious about their contents.
 
 
+## Securing the build if you are using slackpkg
+
+To prevent _slackpkg_ package manager from accidentally downgrading the installed XLibre packages, use the provided `generate_slackpkg_blacklist.sh` script to generate a `blacklist` file and add its content to `/etc/slackpkg/blacklist`. Add `libdrm` and `mesa` to the latter file manually as well.
+
 ## Uninstalling
 
 _Don't worry, you can go back to Xorg any time!_
@@ -155,9 +178,7 @@ You will get a brand new Xorg... but what for?.
 
 ## nVidia legacy proprietary drivers
 
-They are not included into this repository, but you can get [here](https://github.com/ONykyf/nvidia390-slackbuild) a slackbuild with sources for an _nvidia390_ driver that works nicely with this XLibre install.
-
-Work is ongoing on _nvidia470_ and other legacy nVidia drivers.
+They are not included into this repository, but you can get [here](https://github.com/ONykyf/nvidia390-slackbuild) slackbuilds with sources for _nvidia390_ and _nvidia470_ drivers that work nicely with this XLibre install.
 
 
 ## Contact
