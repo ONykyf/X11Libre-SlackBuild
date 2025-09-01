@@ -14,11 +14,11 @@ if [ ! -e ${X11_BUILD_DIR} ]; then
   exit 1
 fi
 
-find /tmp/x11-build/ -name "*.t?z" \
-  | sed -E -e "s_/tmp/x11-build/__" \
-           -e "s/-[0-9]+\.[0-9]+\.[0-9].+//" \
+find ${X11_BUILD_DIR} -name "*.t?z" \
+  | sed -E -e "s/-[0-9]+\.[0-9]+\.[0-9].+//" \
            -e "s/-[0-9]+\.[0-9].+//" \
            -e "s/xisxwayland.+/xiswayland/" \
-  | sort > ${BLACKLIST_FILE}
+  | sort \
+  | xargs -I _ basename _ > ${BLACKLIST_FILE}
 
 echo "Generated blacklist file to ${BLACKLIST_FILE}"
