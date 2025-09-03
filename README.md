@@ -9,11 +9,11 @@ It is assumed that you have installed the entire X packages set. Some things of 
 
 If you have a more or less recent Slackware-current, this is sufficient. Thanks to [rc-05](https://github.com/ONykyf/X11Libre-SlackBuild/issues/4#issuecomment-3220084418) it turned out that it is perfectly possible to build XLibre on a stable Slackware-15.0. All you have to do is:
 
-- to go to [slackware-15.0 testing directory](http://slackware.uk/slackware/slackware64-15.0/testing/packages/graphics-updates/), grab `libdrm-2.4.125-x86_64-1_slack15.0.txz` and `mesa-25.0.7-x86_64-2_slack15.0.txz`, and run
+- to go to [slackware-15.0 testing directory](http://slackware.uk/slackware/slackware64-15.0/testing/packages/graphics-updates/), grab `libdrm-2.4.125-x86_64-1_slack15.0.txz`, `libva-2.22.0-x86_64-1_slack15.0.txz`, and `mesa-25.0.7-x86_64-2_slack15.0.txz`, and run
 ```shell
-upgradepkg --reinstall libdrm-2.4.125-x86_64-1_slack15.0.txz mesa-25.0.7-x86_64-2_slack15.0.txz
+upgradepkg --reinstall libdrm-2.4.125-x86_64-1_slack15.0.txz libva-2.22.0-x86_64-1_slack15.0.txz mesa-25.0.7-x86_64-2_slack15.0.txz
 ```
-to replace `libdrm` and `mesa` with newer versions;
+to replace `libdrm`, `libva`, and `mesa` with newer versions;
 
 - to take `llvm-20.1.8-x86_64-1_slack15.0.txz` at [slackware-15.0 extra directory](http://slackware.uk/slackware/slackware64-15.0/extra/) and install it:
 ```shell
@@ -135,7 +135,7 @@ After the build you will find the built packages in `/tmp/x11-build/*.txz`. Plea
 
 ## Securing the build if you are using slackpkg
 
-To prevent _slackpkg_ package manager from accidentally downgrading the installed XLibre packages, use the provided `generate_slackpkg_blacklist.sh` script to generate a `blacklist` file and add its contents to `/etc/slackpkg/blacklist`. Add `libdrm` and `mesa` to the last file manually as well.
+To prevent _slackpkg_ package manager from accidentally downgrading the installed XLibre packages, use the provided `generate_slackpkg_blacklist.sh` script to generate a `blacklist` file and add its contents to `/etc/slackpkg/blacklist`. Add `libdrm`, `libva`, and `mesa` to the last file manually as well.
 
 ## Uninstalling
 
