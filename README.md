@@ -135,7 +135,7 @@ After the build you will find the built packages in `/tmp/x11-build/*.txz`. Plea
 
 ## Securing the build if you are using slackpkg
 
-To prevent _slackpkg_ package manager from accidentally downgrading the installed XLibre packages, use the provided `generate_slackpkg_blacklist.sh` script to generate a `blacklist` file and add its contents to `/etc/slackpkg/blacklist`. Add `libdrm`, `libva`, and `mesa` to the last file manually as well.
+To prevent _slackpkg_ package manager from accidentally downgrading the installed XLibre packages, use the provided `generate_slackpkg_blacklist.sh` script to generate a `blacklist` file and add its contents to `/etc/slackpkg/blacklist`. Add `libdrm`, `libva`, and `mesa` to the last file manually as well, if XLibre is built on a stable Slackware-15.0.
 
 ## Uninstalling
 
