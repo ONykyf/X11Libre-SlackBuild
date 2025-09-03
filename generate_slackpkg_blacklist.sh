@@ -17,7 +17,7 @@ fi
 find ${X11_BUILD_DIR} -name "*.t?z" \
   | sed -E -e "s/-[0-9]+\.[0-9]+\.[0-9].+//" \
            -e "s/-[0-9]+\.[0-9].+//" \
-           -e "s/xisxwayland.+/xiswayland/" \
+           -e "s/xisxwayland.+/xisxwayland/" \
   | sort \
   | xargs -I _ basename _ > ${BLACKLIST_FILE}
 
