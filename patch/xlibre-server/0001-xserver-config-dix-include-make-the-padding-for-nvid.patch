@@ -101,13 +101,13 @@ diff --git a/meson_options.txt b/meson_options.txt
 index 6077dca96..c66e73b69 100644
 --- a/meson_options.txt
 +++ b/meson_options.txt
-@@ -145,3 +145,6 @@ option('devel-docs', type: 'combo', choices: ['true', 'false', 'auto'], value: '
-         description: 'Build development documentation')
+@@ -148,6 +148,9 @@
  option('docs-pdf', type: 'combo', choices: ['true', 'false', 'auto'], value: 'auto',
          description: 'Whether to build PDF version of documentation. Setting is ignored if documentation is not built.')
-+
+ 
 +option('legacy_nvidia_padding', type: 'boolean', value: false,
 +        description: 'EXPERT ONLY: Add a padding to ScreenRec to match an older ABI for legacy NVidia drivers')
--- 
-2.47.1
-
++
+ # testsuite fine tuning - some things might not run everywhere
+ option('test_rendercheck_triangles', type: 'boolean', value: false,
+        description: 'testsuite: run rendercheck triangles tests (might fail on Xephyr)')
