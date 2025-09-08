@@ -1,0 +1,55 @@
+name: Build XLibre packages for Slackware 15.0
+
+on:
+  push:
+    branches:
+      - main
+jobs:
+  push_container:
+    runs-on: ubuntu-latest
+    services:
+      docker:
+        image: docker:dind
+        options: --privileged
+        volumes:
+          - /var/run/docker.sock:/var/run/docker.sock:ro
+    container:
+      image: aclemons/slackware:15.0-full
+    steps:
+      - uses: actions/checkout@v5
+      - name: Download testing and extra packages
+        run: |
+          mkdir testing && cd testing
+          wget --quiet --show-progress --progress=bar:force:noscroll -r -np -nd --accept libdrm*.t?z,libva*.t?z,mesa*.t?z --no-check-certificate https://mirrors.slackware.com/slackware/slackware64-15.0/testing/packages/ 2>&1 | grep -E -v "(index\.html|robots\.txt)"
+          cd ..
+          mkdir extra && cd extra
+          wget --quiet --show-progress --progress=bar:force:noscroll -r -np -nd --accept=llvm-20*.t?z --no-check-certificate https://mirrors.slackware.com/slackware/slackware64-15.0/extra/ 2>&1 | grep -E -v "(index\.html|robots\.txt)"
+          cd ..
+      - name: Upgrade packages
+        run: |
+          upgradepkg --reinstall testing/*
+          upgradepkg extra/*
+      - name: Build XLibre packages
+        run: |
+          cd $GITHUB_WORKSPACE
+          chmod +x x11libre.SlackBuild
+          ./x11libre.SlackBuild
+      - name: Generate blacklist file
+        run: |
+          mkdir build_artifacts
+          BLACKLIST_FILE=build_artifacts/blacklist ./generate_slackpkg_blacklist.sh
+          cat << EOF >> blacklist
+          libva
+          mesa
+          libdrm
+          llvm
+          spirv-llvm-translator
+          EOF
+      - name: Collect build artifacts
+        run: |
+          mv -v -t build_artifacts /tmp/x11-build/*.t?z ../testing/* ../extra/*
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CI Build
+          path:
+            build_artifacts
