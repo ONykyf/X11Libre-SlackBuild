@@ -34,10 +34,11 @@ jobs:
           cd $GITHUB_WORKSPACE
           chmod +x x11libre.SlackBuild
           ./x11libre.SlackBuild
+          cd ..
       - name: Generate blacklist file
         run: |
           mkdir build_artifacts
-          BLACKLIST_FILE=build_artifacts/blacklist ./generate_slackpkg_blacklist.sh
+          BLACKLIST_FILE=build_artifacts/blacklist $GITHUB_WORKSPACE/generate_slackpkg_blacklist.sh
           cat << EOF >> blacklist
           libva
           mesa
@@ -47,7 +48,7 @@ jobs:
           EOF
       - name: Collect build artifacts
         run: |
-          mv -v -t build_artifacts /tmp/x11-build/*.t?z ../testing/* ../extra/*
+          cp -v -t build_artifacts /tmp/x11-build/*.t?z testing/* extra/*
       - uses: actions/upload-artifact@v4
         with:
           name: CI Build
