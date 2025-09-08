@@ -39,7 +39,7 @@ jobs:
         run: |
           mkdir build_artifacts
           BLACKLIST_FILE=build_artifacts/blacklist $GITHUB_WORKSPACE/generate_slackpkg_blacklist.sh
-          cat << EOF >> blacklist
+          cat << EOF >> build_artifacts/blacklist
           libva
           mesa
           libdrm
