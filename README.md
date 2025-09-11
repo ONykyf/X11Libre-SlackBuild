@@ -15,12 +15,17 @@ upgradepkg --reinstall libdrm-2.4.125-x86_64-1_slack15.0.txz libva-2.22.0-x86_64
 ```
 to replace `libdrm`, `libva`, and `mesa` with newer versions;
 
-- to take `llvm-20.1.8-x86_64-1_slack15.0.txz` at [slackware-15.0 extra directory](http://slackware.uk/slackware/slackware64-15.0/extra/) and install it:
+- to take `llvm-20.1.8-x86_64-1_slack15.0.txz` at [slackware-15.0 extra directory](http://slackware.uk/slackware/slackware64-15.0/extra/) and upgrade it:
 ```shell
-installpkg llvm-20.1.8-x86_64-1_slack15.0.txz
+upgradepkg llvm-20.1.8-x86_64-1_slack15.0.txz
 ```
-side-by-side with the existing older LLVM versions, for X drivers to build and function correctly.
+for X drivers to build and function correctly.
 
+Older LLVM versions are available as `llvm13-compat`, `llvm17-compat` and `llvm19-compat`. These packages can be installed like this:
+```shell
+slackpkg install llvm13-compat llvm17-compat llvm-19compat
+```
+or manually by grabbing them from the [slackware-15.0 extra directory](http://slackware.uk/slackware/slackware64-15.0/extra/) and simply running `installpkg` on each package.
 
 ## Preparing for Install
 
@@ -61,7 +66,7 @@ You can also clone the repository with [Git](https://git-scm.com) like so:
 
 ```shell
 git clone https://github.com/ONykyf/X11Libre-SlackBuild.git
-cd X11Libre-SlackBuild 
+cd X11Libre-SlackBuild
 ```
 
 Using this method gives you the opportunity to later simply update the repository by running `git pull`. Please be advised that the initial download of the Git repository is about 160 MB.
