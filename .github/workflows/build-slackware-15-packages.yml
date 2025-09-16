@@ -30,7 +30,10 @@ jobs:
           upgradepkg --reinstall testing/*
           upgradepkg extra/*
       - name: Build XLibre packages
+        # It would be better to not assign ownership of the directory to the root user... But root is needed
+        # to upgrade the system packages needed to build XLibre.
         run: |
+          chown -R root:users $GITHUB_WORKSPACE
           cd $GITHUB_WORKSPACE
           chmod +x x11libre.SlackBuild
           ./x11libre.SlackBuild
@@ -54,3 +57,28 @@ jobs:
           name: CI Build
           path:
             build_artifacts
+      - name: Get short commit hash with date and time
+        id: git_short_hash_and_release_date
+        run: |
+          echo "commit_hash=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+          echo "release_date=$(date +'%Y.%m.%d-%H.%M')" >> "$GITHUB_OUTPUT"
+      - name: Create release tag
+        id: create_tag
+        env:
+          RELEASE_DATE: ${{ steps.git_short_hash_and_release_date.outputs.release_date }}
+        run: |
+          git tag $RELEASE_DATE
+          git push origin $RELEASE_DATE
+      - name: Generate release tarball
+        id: generate_release_tarball
+        env:
+          COMMIT_HASH: ${{ steps.git_short_hash_and_release_date.outputs.commit_hash }}
+          RELEASE_DATE: ${{ steps.git_short_hash_and_release_date.outputs.release_date }}
+        run: |
+          tar -v -c -z -f "XLibre-Slackware-15-$(uname -m)-$RELEASE_DATE-$COMMIT_HASH.tar.gz" build_artifacts/*
+      - uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ steps.git_short_hash_and_release_date.outputs.release_date }}
+          name: ${{ steps.git_short_hash_and_release_date.outputs.release_date }}
+          artifacts: "*.tar.gz"
+          body: "Release generated with GitHub Actions"
