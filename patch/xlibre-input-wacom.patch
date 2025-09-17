@@ -1,0 +1,2 @@
+# xf86VIDrvMsgVerb() is inaccessible now
+cat $CWD/patch/xlibre-input-wacom/xf86-input-wacom-xlibre-xf86-input-wacom-1.2.3.1.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
