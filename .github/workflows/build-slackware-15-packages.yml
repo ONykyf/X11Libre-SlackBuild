@@ -4,6 +4,14 @@ on:
   push:
     branches:
       - main
+    paths:
+      - build/**
+      - configure/**
+      - make/**
+      - makepkg/**
+      - patch/**
+      - post-install/**
+      - src/**
 permissions:
   contents: write
 jobs:
