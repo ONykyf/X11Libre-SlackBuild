@@ -4,20 +4,20 @@ This repository provides a Slackware X11 build tree modified to build [XLibre](h
 
 ## Preparing for Install
 
-Before building and installing the packages, it is recommended to set the default runlevel of your system to text mode a.k.a. runlevel 3 instead of graphical mode a.k.a. 4 in the file /etc/inittab:
+Before building and installing the packages, it is recommended to set the default runlevel of your system to `text mode` a.k.a. `runlevel 3` instead of `graphical mode` a.k.a. `4` in the file `/etc/inittab`:
 
 ```shell
 #id:4:initdefault:
 id:3:initdefault:
 ```
 
-Doing so will make your system always boot into text mode and gives you a nice safety margin in case the X server fails to start. After system startup and logging in as root user you will be able to manually switch to graphical mode by running telinit 4.
+Doing so will make your system always boot into text mode and gives you a nice safety margin in case the X server fails to start. After system startup and logging in as root user you will be able to manually switch to graphical mode by running `telinit 4`.
 
-When you see that XLibre works the way you want it, you can switch the default runlevel back to 4 in /etc/inittab. Another possibility to work around problems with X server is to have a SSH server start up on your machine by default and remote controlling it from another computer.
+When you see that XLibre works the way you want it, you can switch the default runlevel back to `4` in `/etc/inittab`. Another possibility to work around problems with X server is to have a SSH server start up on your machine by default and remote controlling it from another computer.
 
 ## Prebuilt XLibre Packages for Slackware-15.0
 
-Thanks to rc-05 it turned out that it is perfectly possible to build XLibre on a stable Slackware-15.0. He provided a CI script that rebuilds the packages for 64 bit each time this repository gets updated. Just go to [Releases](https://github.com/ONykyf/X11Libre-SlackBuild/releases) and get `XLibre-Slackware-15-x86_64-{release date and time}-{commit sha reference}.tar.gz` archive with the latest release, unpack it in some directory, and run
+Thanks to [rc-05](https://github.com/rc-05) it turned out that it is perfectly possible to build XLibre on a stable Slackware-15.0. He provided a CI script that rebuilds the packages for 64 bit each time this repository gets updated. Just go to [Releases](https://github.com/ONykyf/X11Libre-SlackBuild/releases) and get `XLibre-Slackware-15-x86_64-{release date and time}-{commit sha reference}.tar.gz` archive with the latest release, unpack it in some directory, and run
 
 ```shell
 cat blacklist >> /etc/slackpkg/blacklist
