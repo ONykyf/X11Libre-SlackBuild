@@ -2,49 +2,65 @@
 
 This repository provides a Slackware X11 build tree modified to build [XLibre](https://github.com/X11Libre/xserver). The sources were imported from Slackware-current Xorg and the XLibre project on July 1, 2025 and are constantly updated.
 
-
-## Prerequisites
-
-It is assumed that you have installed the entire X packages set. Some things of it will be necessary to build XLibre, another ones will be overwritten or upgraded during XLibre install. This set is not that large, so it's safer to install it completely.
-
-If you have a more or less recent Slackware-current, this is sufficient. Thanks to [rc-05](https://github.com/ONykyf/X11Libre-SlackBuild/issues/4#issuecomment-3220084418) it turned out that it is perfectly possible to build XLibre on a stable Slackware-15.0. All you have to do is:
-
-- to go to [slackware-15.0 testing directory](http://slackware.uk/slackware/slackware64-15.0/testing/packages/graphics-updates/), grab `libdrm-2.4.125-x86_64-1_slack15.0.txz`, `libva-2.22.0-x86_64-1_slack15.0.txz`, and `mesa-25.0.7-x86_64-2_slack15.0.txz`, and run
-```shell
-upgradepkg --reinstall libdrm-2.4.125-x86_64-1_slack15.0.txz libva-2.22.0-x86_64-1_slack15.0.txz mesa-25.0.7-x86_64-2_slack15.0.txz
-```
-to replace `libdrm`, `libva`, and `mesa` with newer versions;
-
-- to take `llvm-20.1.8-x86_64-1_slack15.0.txz` at [slackware-15.0 extra directory](http://slackware.uk/slackware/slackware64-15.0/extra/) and upgrade it:
-```shell
-upgradepkg llvm-20.1.8-x86_64-1_slack15.0.txz
-```
-for X drivers to build and function correctly.
-
-Older LLVM versions are available as `llvm13-compat`, `llvm17-compat` and `llvm19-compat`. These packages can be installed like this:
-```shell
-slackpkg install llvm13-compat llvm17-compat llvm-19compat
-```
-or manually by grabbing them from the [slackware-15.0 extra directory](http://slackware.uk/slackware/slackware64-15.0/extra/) and simply running `installpkg` on each package.
-
 ## Preparing for Install
 
-Before building and installing the packages, it is recommended to set the default runlevel of your system to `text mode` a.k.a. runlevel `3` instead of `graphical mode` a.k.a. `4` in the file `/etc/inittab`:
+Before building and installing the packages, it is recommended to set the default runlevel of your system to text mode a.k.a. runlevel 3 instead of graphical mode a.k.a. 4 in the file /etc/inittab:
 
-```
+```shell
 #id:4:initdefault:
 id:3:initdefault:
 ```
 
-Doing so will make your system always boot into `text mode` and gives you a nice safety margin in case the X server fails to start. After system startup and logging in as `root` user you will be able to manually switch to `graphical mode` by running `telinit 4`.
+Doing so will make your system always boot into text mode and gives you a nice safety margin in case the X server fails to start. After system startup and logging in as root user you will be able to manually switch to graphical mode by running telinit 4.
 
-When you see that XLibre works the way you want it, you can switch the default runlevel back to `4` in `/etc/inittab`. Another possibility to work around problems with X server is to have a SSH server start up on your machine by default and remote controlling it from another computer.
+When you see that XLibre works the way you want it, you can switch the default runlevel back to 4 in /etc/inittab. Another possibility to work around problems with X server is to have a SSH server start up on your machine by default and remote controlling it from another computer.
 
+## Prebuilt XLibre Packages for Slackware-15.0
+
+Thanks to rc-05 it turned out that it is perfectly possible to build XLibre on a stable Slackware-15.0. He provided a CI script that rebuilds the packages for 64 bit each time this repository gets updated. Just go to Releases and get `XLibre-Slackware-15-x86_64-{relase date and time}-{commit sha reference}.tar.gz` archive with the latest release, unpack it in some directory, and run
+
+```shell
+cat blacklist >> /etc/slackpkg/blacklist
+upgradepkg --reinstall *.txz
+```
+
+Several Slackware packages need also to be upgraded for XLibre to run properly, all you have to do is:
+
+- to go to slackware-15.0 **testing** directory, grab `libdrm-2.4.125-x86_64-1_slack15.0.txz`, `libva-2.22.0-x86_64-1_slack15.0.txz`, `mesa-25.0.7-x86_64-2_slack15.0.txz`, and `spirv-llvm-translator-20.1.3-x86_64-1_slack15.0.txz`, and run
+
+```shell
+upgradepkg --reinstall libdrm-2.4.125-x86_64-1_slack15.0.txz libva-2.22.0-x86_64-1_slack15.0.txz mesa-25.0.7-x86_64-2_slack15.0.txz spirv-llvm-translator-20.1.3-x86_64-1_slack15.0.txz
+```
+
+to replace `libdrm`, `libva`, `mesa`, and `spirv-llvm-translator` with newer versions.
+
+- to take `llvm-20.1.8-x86_64-1_slack15.0.txz` at slackware-15.0 **extra** directory and upgrade it:
+
+```shell
+upgradepkg llvm-20.1.8-x86_64-1_slack15.0.txz
+```
+
+for X drivers to build and function correctly.
+
+Older LLVM versions are available as `llvm13-compat`, `llvm17-compat` and `llvm19-compat`. These packages can be installed like this:
+
+```shell
+slackpkg install llvm13-compat llvm17-compat llvm-19compat
+```
+
+or manually by grabbing them from the slackware-15.0 **extra** directory and simply running `installpkg` on each package.
+
+Now you have a working XLibre!
+
+## Prerequisites to Build XLibre Yourself
+
+It is assumed that you have installed the entire X packages set. Some things of it will be necessary to build XLibre, another ones will be overwritten or upgraded during XLibre install. This set is not that large, so it's safer to install it completely.
+
+If you have a more or less recent Slackware-current, this is sufficient. For a stable Slackware-15.0 or an older Slackware-current, please upgrade several outdated packages as described above.
 
 ## Getting the Build Files
 
 There are two ways to obtain the build files: via downloading a ZIP archive or via Git cloning the repository.
-
 
 ### Downloading the ZIP Archive
 
@@ -59,7 +75,6 @@ cd X11Libre-SlackBuild
 
 Please be advised that the initial download of the ZIP archive is about 76 MB.
 
-
 ### Cloning the Repository
 
 You can also clone the repository with [Git](https://git-scm.com) like so:
@@ -71,7 +86,6 @@ cd X11Libre-SlackBuild
 
 Using this method gives you the opportunity to later simply update the repository by running `git pull`. Please be advised that the initial download of the Git repository is about 160 MB.
 
-
 ## Running the SlackBuild
 
 After downloading and changing into the main directory, just run the SlackBuild to build all the packages provided by this build tree:
@@ -81,7 +95,6 @@ After downloading and changing into the main directory, just run the SlackBuild 
 ```
 
 Grab some coffee and wait. It won't take too long to compile the entire X11 tree with XLibre instead of Xorg. By default the built packages are immediately installed and replace older versions you have on your system. As a bonus, you get the most up-to-date X libraries and applications with all dependencies satisfied.
-
 
 ### Building the XLibre Xserver and its Drivers Only
 
@@ -94,7 +107,6 @@ If your system is more or less up-to-date, you can try to recompile the X server
 ./x11libre.SlackBuild xlibre-server
 ```
 
-
 ### Building Select Packages Only
 
 To build select packages only you can utilize the structure of the `src` directory. If you e.g. only want to build the package `xkeyboard-config` located under `src/data` you would invoke the build with:
@@ -105,11 +117,9 @@ To build select packages only you can utilize the structure of the `src` directo
 
 This applies to all the other directories and files found in `src` as well.
 
-
 ### Controlling the Upgrade Process
 
 You can control how packages are upgraded as they are built via the environment variable `UPGRADE_PACKAGES`. The default is to always upgrade newly-built packages, effectively setting `UPGRADE_PACKAGES=always`. To install newly built packages only if a package with the exact name is not already installed, use `UPGRADE_PACKAGES=yes`. To not upgrade any packages when they are built, pass `UPGRADE_PACKAGES=no`.
-
 
 ### Logging and Debugging the Build
 
@@ -120,7 +130,6 @@ Although in most cases the upgrade works flawlessly, you might want to collect t
 ```
 
 In the unlikely case some package `foo` fails to build, a file `foo.patch_failed`, `foo.configure_failed`, or `foo.make_failed` will appear in `/tmp/x11-build` instead of `foo.txz`.
-
 
 ### Known Pitfalls
 
@@ -180,11 +189,9 @@ Grab another cup of coffee and run:
 
 You will get a brand new Xorg... but what for?.
 
-
 ## nVidia legacy proprietary drivers
 
 They are not included into this repository, but you can get [here](https://github.com/ONykyf/nvidia390-slackbuild) slackbuilds with sources for _nvidia390_ and _nvidia470_ drivers that work nicely with this XLibre install.
-
 
 ## Contact
 
