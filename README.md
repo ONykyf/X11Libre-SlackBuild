@@ -191,7 +191,7 @@ You will get a brand new Xorg... but what for?.
 
 ## nVidia legacy proprietary drivers
 
-They are not included into this repository, but you can get [here](https://github.com/ONykyf/nvidia390-slackbuild) slackbuilds with sources for _nvidia390_ and _nvidia470_ drivers that work nicely with this XLibre install.
+They are not included into this repository, but you can get [here](https://github.com/ONykyf/nvidia-340-390-470-slackbuilds) slackbuilds with sources for _nvidia340_, _nvidia390_, and _nvidia470_ drivers that work nicely with recent Linux kernels and this XLibre install.
 
 ## Contact
 
