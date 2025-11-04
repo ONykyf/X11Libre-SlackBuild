@@ -6,7 +6,7 @@
 # customary to leave one space after the ':'.
 
                 |-----handy-ruler------------------------------------------------------|
-font-adobe-75dpi: font-adobe-75dpi (OTB version of Adobe 75dpi fonts)
+font-adobe-75dpi: font-adobe-75dpi (bitmap fonts for X11)
 font-adobe-75dpi:
 font-adobe-75dpi: font-adobe-75dpi is part of X11.
 font-adobe-75dpi:

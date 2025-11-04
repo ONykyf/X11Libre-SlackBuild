@@ -10,16 +10,19 @@ config() {
   # Otherwise, we leave the .new copy for the admin to consider...
 }
 
-if [ -r etc/pam.d/xdm.new ]; then
-  config etc/pam.d/xdm.new
-fi
-
-for conffile in \
-  Xaccess Xreset Xresources Xservers Xsession Xsetup_0 Xstartup Xwilling \
-  GiveConsole TakeConsole xdm-config ../app-defaults/Chooser ;
-do
-  config etc/X11/xdm/${conffile}.new
-done
+config etc/X11/app-defaults/Chooser.new
+config etc/X11/xdm/Xaccess.new
+config etc/X11/xdm/Xresources.new
+config etc/X11/xdm/Xservers.new
+config etc/X11/xdm/xdm-config.new
+config etc/pam.d/xdm.new
+config usr/lib/X11/xdm/GiveConsole.new
+config usr/lib/X11/xdm/TakeConsole.new
+config usr/lib/X11/xdm/Xreset.new
+config usr/lib/X11/xdm/Xsession.new
+config usr/lib/X11/xdm/Xsetup_0.new
+config usr/lib/X11/xdm/Xstartup.new
+config usr/lib/X11/xdm/Xwilling.new
 
 # Prevent a black background for login/password when upgrading from xdm-1.1.1
 # and ignoring the .new files :-)

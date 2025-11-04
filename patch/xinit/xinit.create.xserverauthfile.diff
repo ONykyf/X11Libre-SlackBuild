@@ -1,9 +1,9 @@
---- ./startx.cpp.orig	2022-12-03 16:18:43.000000000 -0600
-+++ ./startx.cpp	2024-10-17 14:04:54.997581501 -0500
-@@ -273,6 +273,10 @@
+--- ./startx.in.orig	2025-03-09 15:44:26.000000000 -0500
++++ ./startx.in	2025-03-10 13:27:15.681102705 -0500
+@@ -284,6 +284,10 @@
  
-     XCOMM create a file with auth information for the server. ':0' is a dummy.
-     xserverauthfile=$HOME/.serverauth.$$
+     # create a file with auth information for the server. ':0' is a dummy.
+     xserverauthfile="$HOME/.serverauth.$$"
 +    if [ ! -e $xserverauthfile ]; then
 +      touch $xserverauthfile
 +      chmod 600 $xserverauthfile

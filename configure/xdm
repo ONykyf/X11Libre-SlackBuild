@@ -10,6 +10,7 @@ CXXFLAGS=$SLKCFLAGS \
   --prefix=/usr \
   --libdir=/usr/lib${LIBDIRSUFFIX} \
   --sysconfdir=/etc \
+  --with-xdmconfigdir=/etc/X11/xdm \
   --localstatedir=/var \
   --infodir=/usr/info \
   --mandir=/usr/man \

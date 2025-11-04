@@ -40,6 +40,7 @@ meson setup \
   -D xkb_output_dir='/var/lib/xkb' \
   -D int10=x86emu \
   -D legacy_nvidia_padding=true \
+  -D legacy_nvidia_340x=true \
   -D default_font_path="${DEF_FONTPATH}" \
   .. || touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.configure_failed
 

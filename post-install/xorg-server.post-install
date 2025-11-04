@@ -1,6 +1,11 @@
 # Create the configuration directories for xorg-server 1.9.x
 mkdir -p $PKG/etc/X11/xorg.conf.d $PKG/usr/share/X11/xorg.conf.d
 
+# Add a config file for Xorg.wrap:
+cp -a $CWD/post-install/xorg-server/Xwrapper.config $PKG/etc/X11/Xwrapper.config.new
+chown root:root $PKG/etc/X11/Xwrapper.config.new
+chmod 644 $PKG/etc/X11/Xwrapper.config.new
+
 # Create a sample keyboard layout 
 # Enable zapping by default
 cat << EOF > $PKG/usr/share/X11/xorg.conf.d/90-keyboard-layout-evdev.conf

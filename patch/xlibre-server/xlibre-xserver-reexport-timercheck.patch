@@ -72,7 +72,7 @@ index 343ef3929b..517b7981a2 100644
 +# legacy nvidia driver quirks
  option('legacy_nvidia_padding', type: 'boolean', value: false,
          description: 'EXPERT ONLY: Add a padding to ScreenRec to match an older ABI for legacy NVidia drivers')
-+option('legacy_nvidia_340x', type: 'boolean', value: true,
++option('legacy_nvidia_340x', type: 'boolean', value: false,
 +        description: 'Extra entrypoints for old Nvidia 340x proprietary driver')
  
  # testsuite fine tuning - some things might not run everywhere

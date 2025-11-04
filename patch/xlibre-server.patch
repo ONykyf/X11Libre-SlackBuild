@@ -59,3 +59,6 @@ cat $CWD/patch/xlibre-server/xlibre-xserver-module-path-list.patch | patch -p1 -
 
 # Add MatchLayout entry to OutputClass.
 cat $CWD/patch/xlibre-server/xlibre-xserver-matchlayout-to-outputclass.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+
+# Add LD_LIBRARY_PATH setting to OutputClass.
+#cat $CWD/patch/xlibre-server/xlibre-xserver-ld-library-path-to-outputclass.patch | patch -p1 -b -z .orig --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
