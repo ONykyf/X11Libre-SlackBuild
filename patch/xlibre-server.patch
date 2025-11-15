@@ -49,10 +49,8 @@ cat $CWD/patch/xlibre-server/xlibre-xserver-outputclass-ignore-abi.patch | patch
 cat $CWD/patch/xlibre-server/xlibre-xserver-install-10-nvidia.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
 cat $CWD/patch/xlibre-server/xlibre-xserver-update-man-ignore-abi.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
 
-# Re-export TimerForce, TimerCheck, and GEInitEvent to make nvidia-340 and nvidia-390 happy.
+# Re-export TimerForce to make nvidia-340 and nvidia-390 happy.
 cat $CWD/patch/xlibre-server/xlibre-xserver-reexport-timerforce.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
-cat $CWD/patch/xlibre-server/xlibre-xserver-reexport-timercheck.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
-cat $CWD/patch/xlibre-server/xlibre-xserver-reexport-geinitevent.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
 
 # Improve ModulePath directive in OutputClass.
 cat $CWD/patch/xlibre-server/xlibre-xserver-module-path-list.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
