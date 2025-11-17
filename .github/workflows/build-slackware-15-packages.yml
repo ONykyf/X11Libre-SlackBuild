@@ -27,9 +27,10 @@ jobs:
       image: aclemons/slackware:15.0-full
     steps:
       - uses: actions/checkout@v5
+      - name: Remove a huge unnecessary tools folder
+        run: rm -rf /opt/hostedtoolcache
       - name: Download testing and extra packages
         run: |
-          removepkg /var/log/packages/qt* /var/log/packages/texlive* 
           mkdir testing && cd testing
           wget --quiet --show-progress --progress=bar:force:noscroll -r -np -nd --accept libdrm*.t?z,libva*.t?z,mesa*.t?z --no-check-certificate https://mirrors.slackware.com/slackware/slackware64-15.0/testing/packages/ 2>&1 | grep -E -v "(index\.html|robots\.txt)"
           cd ..
