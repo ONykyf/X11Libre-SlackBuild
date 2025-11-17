@@ -17,6 +17,8 @@ When you see that XLibre works the way you want it, you can switch the default r
 
 ## Prebuilt XLibre Packages for Slackware-15.0
 
+**Update:** This option is temporarily unavailable until some issues with workflows are resolved.
+
 Thanks to [rc-05](https://github.com/rc-05) it turned out that it is perfectly possible to build XLibre on a stable Slackware-15.0. He provided a CI script that rebuilds the packages for 64 bit each time this repository gets updated. Just go to [Releases](https://github.com/ONykyf/X11Libre-SlackBuild/releases) and get `XLibre-Slackware-15-x86_64-{release date and time}-{commit sha reference}.tar.gz` archive with the latest release, unpack it in some directory, and run
 
 ```shell
@@ -191,7 +193,7 @@ You will get a brand new Xorg... but what for?.
 
 ## nVidia legacy proprietary drivers
 
-They are not included into this repository, but you can get [here](https://github.com/ONykyf/nvidia390-slackbuild) slackbuilds with sources for _nvidia390_ and _nvidia470_ drivers that work nicely with this XLibre install.
+They are not included into this repository, but you can get [here](https://github.com/ONykyf/nvidia390-slackbuild) slackbuilds with sources for _nvidia340_, _nvidia390_, and _nvidia470_ drivers that work nicely with this XLibre install.
 
 ## Contact
 
