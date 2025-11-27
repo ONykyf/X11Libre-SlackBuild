@@ -32,11 +32,6 @@ cat $CWD/patch/xlibre-server/0005-xserver-hw-xfree86-man-update-manual-page.patc
 # Flush pending glamor operations before CloseScreen.
 cat $CWD/patch/xlibre-server/xlibre-xserver-flush-pending-before-closescreen.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
 
-# Include stefan11111 patches to keep up with master.
-cat $CWD/patch/xlibre-server/stefan-1a2aec151670c9a9fc77602524b96b36a62beebb.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
-cat $CWD/patch/xlibre-server/stefan-448028ef5e1960a2383a279228dee7b6601b7002.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
-cat $CWD/patch/xlibre-server/stefan-5cf33895170f95e5c92e2c97b9b94785afa6fa79.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
-
 # Adjustments for legacy nvidia DDX drivers.
 cat $CWD/patch/xlibre-server/0001-xserver-config-dix-include-make-the-padding-for-nvid.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
 cat $CWD/patch/xlibre-server/0002-xserver-hw-xserver-lie-to-nvidia-about-older-ABI-if-.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }

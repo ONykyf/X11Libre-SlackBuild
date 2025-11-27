@@ -7,7 +7,7 @@ Subject: [PATCH 1/4] xfree86: {common,loader}: simplify setting IgnoreABI
 It is patch 1/4 of a series that provides a convenient way to specify
 IgnoreABI on a per-driver basis.
 
-Two Bool variables LoaderIgnoreABI (specific) and  LoaderIgnoresllABI
+Two Bool variables LoaderIgnoreABI (specific) and  LoaderIgnoreAllABI
 (server-wide) are used to control loader and modules behavior.
 
 Signed-off-by: Oleh Nykyforchyn <oleh.nyk@gmail.com>
