@@ -1,71 +1,5 @@
-From 0f6eaa096528d4c2e7232f95e742504296b49fa5 Mon Sep 17 00:00:00 2001
-From: Oleh Nykyforchyn <oleh.nyk@gmail.com>
-Date: Sat, 9 Aug 2025 18:26:57 +0300
-Subject: [PATCH 2/4] xserver: hw/xfree86/common: introduce option IgnoreABI
- for OutputClass
-
-It is patch 2/4 of a series that provides a convenient way to specify
-IgnoreABI on a per-driver basis.
-
-This patch allows to create an OutputClass that applies IgnoreABI option
-to devices depending on the driver in use.
-
-Signed-off-by: Oleh Nykyforchyn <oleh.nyk@gmail.com>
----
- hw/xfree86/common/xf86Init.c        |  2 +
- hw/xfree86/common/xf86platformBus.c | 13 +++++
- hw/xfree86/loader/loader.c          | 75 ++++++++++++++++++++++++++++-
- hw/xfree86/loader/loaderProcs.h     |  1 +
- 4 files changed, 89 insertions(+), 2 deletions(-)
-
-diff --git a/hw/xfree86/common/xf86Init.c b/hw/xfree86/common/xf86Init.c
-index e891e9009..b39e099f0 100644
---- a/hw/xfree86/common/xf86Init.c
-+++ b/hw/xfree86/common/xf86Init.c
-@@ -749,6 +749,8 @@ CloseInput(void)
- {
-     config_fini();
-     mieqFini();
-+    /* strictly speaking the below is not related to input, but ... */
-+    LoaderClose();
- }
- 
- /*
-diff --git a/hw/xfree86/common/xf86platformBus.c b/hw/xfree86/common/xf86platformBus.c
-index a5585b884..002f385f0 100644
---- a/hw/xfree86/common/xf86platformBus.c
-+++ b/hw/xfree86/common/xf86platformBus.c
-@@ -273,6 +273,7 @@ xf86platformProbe(void)
-     }
- 
-     for (i = 0; i < xf86_num_platform_devices; i++) {
-+        struct xf86_platform_device *dev = &xf86_platform_devices[i];
-         char *busid = xf86_platform_odev_attributes(i)->busid;
- 
-         if (pci && busid && (strncmp(busid, "pci:", 4) == 0)) {
-@@ -296,6 +297,18 @@ xf86platformProbe(void)
-                                cl->identifier, path);
-                 LoaderSetPath(path);
-             }
-+
-+            if (xf86CheckBoolOption(cl->option_lst, "IgnoreABI", FALSE)) {
-+                if (cl->driver) {
-+                    LogMessageVerb(X_CONFIG, 1, "OutputClass \"%s\" sets %s to ignore ABI for \"%s\" managed by %s\n",
-+                               cl->identifier, cl->driver, dev->attribs->path, dev->attribs->driver);
-+                    LoaderSetIgnoreABI(cl->driver);
-+                } else {
-+                    LogMessageVerb(X_CONFIG, 1, "OutputClass \"%s\" requires to ignore ABI for \"%s\" managed by %s\n"
-+                            "   but Option \"Driver\" is not set\n",
-+                            cl->identifier, dev->attribs->path, dev->attribs->driver);
-+                }
-+            }
-         }
-     }
- 
-diff --git a/hw/xfree86/loader/loader.c b/hw/xfree86/loader/loader.c
-index 722025322..d91613f4f 100644
---- a/hw/xfree86/loader/loader.c
-+++ b/hw/xfree86/loader/loader.c
+--- xserver-xlibre-xserver-25.1.0/hw/xfree86/loader/loader.c.orig	2025-12-25 23:53:55.112292868 +0200
++++ xserver-xlibre-xserver-25.1.0/hw/xfree86/loader/loader.c	2025-12-25 23:53:55.116292868 +0200
 @@ -52,6 +52,7 @@
  
  #include <string.h>
@@ -74,18 +8,9 @@ index 722025322..d91613f4f 100644
  #include "loader.h"
  #include "loaderProcs.h"
  
-@@ -68,12 +69,24 @@
- extern void *xorg_symbols[];
- #endif
- 
-+/* ABI versions for all modules are ignored */
- Bool LoaderIgnoreAllABI;
-+/* ABI version for a currently loaded module is ignored */
+@@ -72,6 +73,15 @@
  Bool LoaderIgnoreABI;
- #ifdef LEGACY_NVIDIA_PADDING
-+/* Legacy proprietary nvidia drivers need hacks */
  Bool is_nvidia_proprietary;
- #endif /* LEGACY_NVIDIA_PADDING */
  
 +/* ABI for a module with this canonical name is ignored */
 +typedef struct {
@@ -99,19 +24,17 @@ index 722025322..d91613f4f 100644
  void
  LoaderInit(void)
  {
-@@ -96,8 +109,21 @@ LoaderInit(void)
-     LoaderIgnoreAllABI = FALSE;
+@@ -96,12 +106,19 @@
      LoaderIgnoreABI = FALSE;
- #ifdef LEGACY_NVIDIA_PADDING
      is_nvidia_proprietary = FALSE;
- #endif /* LEGACY_NVIDIA_PADDING */
-+
+     LoaderInitPath();
 +    xorg_list_init(&LoaderIgnoreABIList);
-+}
-+
-+void
-+LoaderClose(void)
-+{
+ }
+ 
+ void
+ LoaderClose(void)
+ {
+     LoaderClosePath();
 +    LoaderIgnoreABIItem *item, *next;
 +    xorg_list_for_each_entry_safe(item, next, &LoaderIgnoreABIList, entry) {
 +        xorg_list_del(&item->entry);
@@ -121,7 +44,7 @@ index 722025322..d91613f4f 100644
  }
  
  /* Public Interface to the loader. */
-@@ -155,25 +181,70 @@ LoaderUnload(const char *name, void *handle)
+@@ -161,25 +178,70 @@
          dlclose(handle);
  }
  
@@ -194,18 +117,53 @@ index 722025322..d91613f4f 100644
  Bool
  LoaderShouldIgnoreABI(void)
  {
-diff --git a/hw/xfree86/loader/loaderProcs.h b/hw/xfree86/loader/loaderProcs.h
-index 964169d60..799f0ed34 100644
---- a/hw/xfree86/loader/loaderProcs.h
-+++ b/hw/xfree86/loader/loaderProcs.h
-@@ -69,6 +69,7 @@ typedef struct module_desc {
- /* External API for the loader */
+--- xserver-xlibre-xserver-25.1.0/hw/xfree86/common/xf86platformBus.c.orig	2025-12-21 16:53:30.000000000 +0200
++++ xserver-xlibre-xserver-25.1.0/hw/xfree86/common/xf86platformBus.c	2025-12-26 00:03:54.299312042 +0200
+@@ -267,6 +267,7 @@
+     }
  
- void LoaderInit(void);
-+void LoaderClose(void);
+     for (i = 0; i < xf86_num_platform_devices; i++) {
++        struct xf86_platform_device *dev = &xf86_platform_devices[i];
+         char *busid = xf86_platform_odev_attributes(i)->busid;
  
- ModuleDescPtr LoadModule(const char *, void *, const XF86ModReqInfo *, int *);
- ModuleDescPtr DuplicateModule(ModuleDescPtr mod, ModuleDescPtr parent);
--- 
-2.47.1
-
+         if (pci && busid && (strncmp(busid, "pci:", 4) == 0)) {
+@@ -350,6 +351,39 @@
+                 }
+                 /* Otherwise global module search path is left unchanged */
+             }
++
++            if (xf86CheckBoolOption(cl->option_lst, "IgnoreABI", FALSE)) {
++                if (cl->driver) {
++                    LogMessageVerb(X_CONFIG, 1, "OutputClass \"%s\" sets driver \"%s\" to ignore ABI for \"%s\" managed by %s\n",
++                               cl->identifier, cl->driver, dev->attribs->path, dev->attribs->driver);
++                    if (*(cl->driver)) LoaderSetIgnoreABI(cl->driver);
++                    if (cl->modules) {
++                        LogMessageVerb(X_CONFIG, 1, "    and for modules \"%s\" as well\n",
++                                cl->modules);
++                        XNFasprintf(&copy, "%s", cl->modules);
++                        curr = copy;
++                        while ((curr = strtok_r(curr, ",", &next))) {
++                            if (*curr) LoaderSetIgnoreABI(curr);
++                            curr = NULL;
++                        }
++                        free(copy);
++                    }
++                } else if (cl->modules) {
++                    LogMessageVerb(X_CONFIG, 1, "OutputClass \"%s\" sets modules \"%s\" to ignore ABI for \"%s\" managed by %s\n",
++                               cl->identifier, cl->modules, dev->attribs->path, dev->attribs->driver);
++                    XNFasprintf(&copy, "%s", cl->modules);
++                    curr = copy;
++                    while ((curr = strtok_r(curr, ",", &next))) {
++                        if (*curr) LoaderSetIgnoreABI(curr);
++                        curr = NULL;
++                    }
++                    free(copy);
++                } else {
++                    LogMessageVerb(X_CONFIG, 1, "OutputClass \"%s\" requires to ignore ABI for \"%s\" managed by %s\n"
++                            "   but neither \"Driver\" nor \"Module\" is set\n",
++                            cl->identifier, dev->attribs->path, dev->attribs->driver);
++                }
++            }
+         }
+     }
+ 

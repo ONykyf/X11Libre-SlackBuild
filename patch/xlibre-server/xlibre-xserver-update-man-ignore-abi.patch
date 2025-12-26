@@ -1,51 +1,18 @@
-From be0e02983e12e35d52b252328dcb22f6987db4aa Mon Sep 17 00:00:00 2001
-From: Oleh Nykyforchyn <oleh.nyk@gmail.com>
-Date: Sat, 9 Aug 2025 18:36:02 +0300
-Subject: [PATCH 4/4] xserver: hw/xfree86/config: update xorg.conf man page
-
-It is patch 4/4 of a series that provides a convenient way to specify
-IgnoreABI on a per-driver basis.
-
-This patch updates the man page.
-
-Signed-off-by: Oleh Nykyforchyn <oleh.nyk@gmail.com>
----
- hw/xfree86/man/xorg.conf.man | 33 +++++++++++++++++++++++++++++----
- 1 file changed, 29 insertions(+), 4 deletions(-)
-
-diff --git a/hw/xfree86/man/xorg.conf.man b/hw/xfree86/man/xorg.conf.man
-index fa06e87c2..5c685d003 100644
---- a/hw/xfree86/man/xorg.conf.man
-+++ b/hw/xfree86/man/xorg.conf.man
-@@ -1327,11 +1327,11 @@ When an output device has been matched to the
+--- xserver-xlibre-xserver-25.1.0/hw/xfree86/man/xorg.conf.man.orig	2025-12-21 16:53:30.000000000 +0200
++++ xserver-xlibre-xserver-25.1.0/hw/xfree86/man/xorg.conf.man	2025-12-14 20:18:25.626342805 +0200
+@@ -1342,7 +1342,7 @@
  .B OutputClass
  section, any
  .B Option
--entries are applied to the device. One
+-entries are applied to the device. Two
 +entries are applied to the device. Three
  .B OutputClass
--specific
-+specific kinds of
+ specific kinds of
  .B Option
--is recognized. See the
-+are recognized. See the
- .B Device
- section below for a description of the remaining
- .B Option
-@@ -1356,7 +1356,7 @@ If multiple output devices match an
- section with the
- .B HotplugDriver
- option, the first one enumerated becomes the hotplug driver.
--A
-+An
- .B OutputClass
- Section may contain
- .B ModulePath
-@@ -1371,6 +1371,31 @@ are pre-pended to the search path for loadable Xorg server modules. See
- in the
- .B Files
- section for more info.
-+.TP 7
+@@ -1374,26 +1374,58 @@
+ .RE
+ .PP
+ .TP 7
 +.BI "Option \*qIgnoreABI\*q \*q" boolean \*q
 +If set, this option makes driver loader ignore module ABI, which may be necessary
 +to use legacy proprietary NVidia drivers. If
@@ -70,9 +37,83 @@ index fa06e87c2..5c685d003 100644
 +no effect if DRM for a GPU is not enabled. See
 +.IR /usr/share/X11/xorg.conf.d/10-nvidia.conf
 +for an example.
- .SH "DEVICE SECTION"
- The config file may have multiple
- .B Device
--- 
-2.47.1
-
++.RE
++.PP
++.TP 7
+ An
+ .B OutputClass
+-section may contain multiple
++section may contain a
+ .TP 7
+ .BI "ModulePath \*q" path \*q
+-entries. When an output device with DRM enabled matches an
++entry. When an output device with DRM enabled matches an
+ .B OutputClass
+ section and
+ .B Driver
+ .I \*qdriver\*q
+-is set, then for this driver module, and all modules loaded until the next driver
+-for a DRM-enabled GPU, a search path is created by prepending all
+-.B ModulePath
+-entries in that
+-.B OutputClass
+-to the
++or/and one or more
++.B Module
++.I \*qmodule\*q
++are present, then for this driver/modules a search path is replaced with
++the string \(lq@modulepath@\(rq, or, if the last character of this string is a comma,
++then a search path is obtained by prepending \(lq@modulepath@\(rq to the
+ .I standard
+ search path \(lq@modulepath@\(rq for loadable Xorg server modules (not the
+ .I effective
+-default set path, which can undergo changes, see below). If there is a single
++default set path, which can undergo changes, see below). Note that this implies that,
++of several
++.B ModulePath
++entries in that
++.B OutputClass
++, only the last one counts. If it is 
+ .PP
+ .RS 11
+ .nf
+@@ -1402,11 +1434,7 @@
+ .RE
+ .PP
+ .RS 7
+-entry in an
+-.B OutputClass
+-for a
+-.I driver
+-, then only the
++then only the
+ .I standard
+ path \(lq@modulepath@\(rq is searched from now on. It there no
+ .B ModulePath
+@@ -1417,6 +1445,8 @@
+ .I overrides
+ search path for a
+ .I driver
++ond/or
++.I modules
+ , not
+ .I extends
+ it.
+@@ -1425,13 +1455,15 @@
+ .B OutputClass
+ contains
+ .B ModulePath
+-entries, but not a
++entries, but neither
+ .B Driver
++nor
++.B Module
+ entry, then paths are
+ .I prepended
+ to the
+ .I effective
+-default search path, which initially is standard \(lq@modulepath@\(rq, thus extending it.
++default search path, which initially is the standard \(lq@modulepath@\(rq, thus extending it.
+ .PP
+ These entries have no effect if a search path for loadable modules is set through command line. See
+ .B ModulePath

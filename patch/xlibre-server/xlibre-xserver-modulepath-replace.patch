@@ -1,0 +1,34 @@
+--- xserver-xlibre-xserver-25.0.0.99/hw/xfree86/common/xf86platformBus.c.orig	2025-12-13 11:00:56.641239957 +0200
++++ xserver-xlibre-xserver-25.0.0.99/hw/xfree86/common/xf86platformBus.c	2025-12-13 11:09:32.870256476 +0200
+@@ -286,8 +286,13 @@
+                 if (cl->driver) {
+                     if (cl->modulepath) {
+                         if (*(cl->modulepath)) {
+-                            if (asprintf(&driver_path, "%s,%s", cl->modulepath, xf86ModulePath) == -1)
+-                                goto asprintf_failed;
++                            if (cl->modulepath[strlen(cl->modulepath)-1] == ',') {
++                                if (asprintf(&driver_path, "%s%s", cl->modulepath, xf86ModulePath) == -1)
++                                    goto asprintf_failed;
++                            } else {
++                                if (asprintf(&driver_path, "%s", cl->modulepath) == -1)
++                                    goto asprintf_failed;
++                            }
+                             LogMessageVerb(X_CONFIG, 1, "OutputClass \"%s\" ModulePath for driver %s overridden with \"%s\"\n",
+                                     cl->identifier, cl->driver, driver_path);
+                         } else {
+@@ -319,8 +324,13 @@
+                 else if (cl->modules) {
+                     if (cl->modulepath) {
+                         if (*(cl->modulepath)) {
+-                            if (asprintf(&driver_path, "%s,%s", cl->modulepath, xf86ModulePath) == -1)
+-                                goto asprintf_failed;
++                            if (cl->modulepath[strlen(cl->modulepath)-1] == ',') {
++                                if (asprintf(&driver_path, "%s%s", cl->modulepath, xf86ModulePath) == -1)
++                                    goto asprintf_failed;
++                            } else {
++                                if (asprintf(&driver_path, "%s", cl->modulepath) == -1)
++                                    goto asprintf_failed;
++                            }
+                             LogMessageVerb(X_CONFIG, 1, "OutputClass \"%s\" ModulePath for modules %s overridden with \"%s\"\n",
+                                     cl->identifier, cl->modules, driver_path);
+                         } else {

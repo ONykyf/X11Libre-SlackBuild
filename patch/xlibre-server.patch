@@ -18,25 +18,8 @@ zcat $CWD/patch/xlibre-server/0001-xfree86-use-modesetting-driver-by-default-on-
 # Only use Intel DDX with pre-gen4 hardware. Newer hardware will the the modesetting driver by default:
 zcat $CWD/patch/xlibre-server/06_use-intel-only-on-pre-gen4.diff.gz | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
 
-# Take into account divergence between master and maint-25.0 in match groups handling.
-cat $CWD/patch/xlibre-server/e0440a0b428ac69f91b140f14820adaa6645a6c7.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
-
-# Patches to provide extended InputClass/OutpuClass deninition syntax.
-# Needs regex library.
-cat $CWD/patch/xlibre-server/0001-xserver-hw-xfree86-parser-prepare-types-for-pattern-.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
-cat $CWD/patch/xlibre-server/0002-xserver-hw-xfree86-parser-create-pattern-group-from-.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
-cat $CWD/patch/xlibre-server/0003-xserver-hw-xfree86-common-parser-use-pattern-groups-.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
-cat $CWD/patch/xlibre-server/0004-xserver-hw-xfree86-common-parser-use-regular-express.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
-cat $CWD/patch/xlibre-server/0005-xserver-hw-xfree86-man-update-manual-page.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
-
 # Flush pending glamor operations before CloseScreen.
 cat $CWD/patch/xlibre-server/xlibre-xserver-flush-pending-before-closescreen.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
-
-# Adjustments for legacy nvidia DDX drivers.
-cat $CWD/patch/xlibre-server/0001-xserver-config-dix-include-make-the-padding-for-nvid.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
-cat $CWD/patch/xlibre-server/0002-xserver-hw-xserver-lie-to-nvidia-about-older-ABI-if-.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
-cat $CWD/patch/xlibre-server/0003-include-export-noDamageExtension.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
-cat $CWD/patch/xlibre-server/0004-xserver-hw-xfree86-loader-Add-a-comment-to-LoaderGet.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
 
 # Simplify setting IgnoreABI for certain drivers.
 cat $CWD/patch/xlibre-server/xlibre-xserver-set-ignore-abi.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
@@ -44,14 +27,18 @@ cat $CWD/patch/xlibre-server/xlibre-xserver-outputclass-ignore-abi.patch | patch
 cat $CWD/patch/xlibre-server/xlibre-xserver-install-10-nvidia.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
 cat $CWD/patch/xlibre-server/xlibre-xserver-update-man-ignore-abi.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
 
-# Re-export TimerForce to make nvidia-340 and nvidia-390 happy.
-cat $CWD/patch/xlibre-server/xlibre-xserver-reexport-timerforce.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+# Get rid of XNFasprintf in favor of asprintf.
+cat $CWD/patch/xlibre-server/xlibre-xserver-no-xnfasprintf.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
 
-# Improve ModulePath directive in OutputClass.
-cat $CWD/patch/xlibre-server/xlibre-xserver-module-path-list.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+# More checks for PCI multi-CRT cards.
+cat $CWD/patch/xlibre-server/xlibre-xserver-pci-multi-crt.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
 
-# Add MatchLayout entry to OutputClass.
-cat $CWD/patch/xlibre-server/xlibre-xserver-matchlayout-to-outputclass.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+# More checks for udev multi-CRT cards.
+cat $CWD/patch/xlibre-server/xlibre-xserver-platform-multi-crt.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
 
-# Add LD_LIBRARY_PATH setting to OutputClass.
-#cat $CWD/patch/xlibre-server/xlibre-xserver-ld-library-path-to-outputclass.patch | patch -p1 -b -z .orig --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+# Find BusID for modesetting driven /dev/dri/cardX devices.
+cat $CWD/patch/xlibre-server/xlibre-xserver-fb-busid.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+
+# Allow to replace ModulePath for specific drivers and modules.
+cat $CWD/patch/xlibre-server/xlibre-xserver-modulepath-replace.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+

@@ -33,7 +33,6 @@ meson setup \
   -D glamor=true \
   -D xnest=true \
   -D xvfb=true \
-  -D xace=true \
   -D xcsecurity=true \
   -D namespace=true \
   -D xkb_dir='/usr/share/X11/xkb' \

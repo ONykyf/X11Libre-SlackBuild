@@ -1,2 +1,0 @@
-# make Emulate3Buttons a synonym for MiddleEmulation
-cat $CWD/patch/xlibre-input-libinput/xlibre-xf86-input-libinput-middleemulation-emulate3buttons.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }

@@ -167,7 +167,7 @@ no_usr_share_doc() {
         elif [ "$x_source_dir" = "xlibre-driver" ] ; then
             PKGNAME=xlibre-"`echo $x_pkg | cut -f 2-3 -d -`"
             if ls $CWD/src/xlibre-server/xserver-xlibre-xserver-*.tar.gz > /dev/null ; then
-              XSHORTVER=`ls $CWD/src/xlibre-server/xserver-xlibre-xserver-*.tar.gz | rev | cut -f 1 -d - | rev | cut -f 1-2 -d .`
+              XSHORTVER=`ls $CWD/src/xlibre-server/xserver-xlibre-xserver-*.tar.gz | rev | cut -f 1 -d - | rev | cut -f 1 -d .`
             else
                echo
                echo "XLibre server source not found, exiting!"
