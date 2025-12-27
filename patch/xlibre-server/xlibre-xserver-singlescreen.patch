@@ -1,0 +1,160 @@
+--- xserver-xlibre-xserver-25.1.0/hw/xfree86/man/xorg.conf.man.orig	2025-12-27 13:43:17.209349896 +0200
++++ xserver-xlibre-xserver-25.1.0/hw/xfree86/man/xorg.conf.man	2025-12-27 13:49:52.581362548 +0200
+@@ -687,6 +687,11 @@
+ .TP 7
+ .BI "Option \*qAllowByteSwappedClients\*q  \*q" boolean \*q
+ Allow clients with a different byte-order than the server. Disabled by default.
++.TP 7
++.BI "Option \*qSingleScreen\*q  \*q" boolean \*q
++Only the first screen found is added to the current layout, others may
++become secondary GPU screens (e.g., if non-primary GPUs are used for offloading).
++Disabled by default.
+ .SH "MODULE SECTION"
+ The
+ .B Module
+--- xserver-xlibre-xserver-25.1.0/hw/xfree86/common/xf86Privstr.h.orig	2025-12-21 16:53:30.000000000 +0200
++++ xserver-xlibre-xserver-25.1.0/hw/xfree86/common/xf86Privstr.h	2025-12-27 13:25:29.707315735 +0200
+@@ -94,6 +94,9 @@
+     Bool autoAddGPU;
+     const char *debug;
+     Bool autoBindGPU;
++
++    Bool singleScreen;          /* Add only the first screen found to xf86Screens,
++                                 * others may go to GPU secondary screens */
+ } xf86InfoRec, *xf86InfoPtr;
+ 
+ /* ISC's cc can't handle ~ of UL constants, so explicitly type cast them. */
+--- xserver-xlibre-xserver-25.1.0/hw/xfree86/common/xf86Config.c.orig	2025-12-21 16:53:30.000000000 +0200
++++ xserver-xlibre-xserver-25.1.0/hw/xfree86/common/xf86Config.c	2025-12-27 13:25:29.708315735 +0200
+@@ -657,6 +657,7 @@
+     FLAG_IGLX,
+     FLAG_DEBUG,
+     FLAG_ALLOW_BYTE_SWAPPED_CLIENTS,
++    FLAG_SINGLE_SCREEN,
+ } FlagValues;
+ 
+ /**
+@@ -718,6 +719,8 @@
+      {0}, FALSE},
+     {FLAG_ALLOW_BYTE_SWAPPED_CLIENTS, "AllowByteSwappedClients", OPTV_BOOLEAN,
+      {0}, FALSE},
++    {FLAG_SINGLE_SCREEN, "SingleScreen", OPTV_BOOLEAN,
++     {0}, FALSE},
+     {-1, NULL, OPTV_NONE,
+      {0}, FALSE},
+ };
+@@ -815,6 +818,17 @@
+     LogMessageVerb(from, 1, "%sutomatically binding GPU devices\n",
+                    xf86Info.autoBindGPU ? "A" : "Not a");
+ 
++    if (xf86IsOptionSet(FlagOptions, FLAG_SINGLE_SCREEN)) {
++        xf86GetOptValBool(FlagOptions, FLAG_SINGLE_SCREEN,
++                          &xf86Info.singleScreen);
++        from = X_CONFIG;
++    }
++    else {
++        from = X_DEFAULT;
++    }
++    LogMessageVerb(from, 1, "Allow %s one non-GPU screen\n",
++                   xf86Info.singleScreen ? "only" : "more than");
++
+     /*
+      * Set things up based on the config file information.  Some of these
+      * settings may be overridden later when the command line options are
+--- xserver-xlibre-xserver-25.1.0/hw/xfree86/common/xf86Bus.h.orig	2025-12-21 16:53:30.000000000 +0200
++++ xserver-xlibre-xserver-25.1.0/hw/xfree86/common/xf86Bus.h	2025-12-27 13:25:29.708315735 +0200
+@@ -77,7 +77,7 @@
+ _X_EXPORT /* only for internal int10 module - not supposed to be used by OOT drivers */
+ ScrnInfoPtr xf86FindScreenForEntity(int entityIndex);
+ 
+-Bool xf86BusConfig(void);
++Bool xf86BusConfig(Bool singleScreen);
+ void xf86ClearEntityListForScreen(ScrnInfoPtr pScrn);
+ void xf86RemoveDevFromEntity(int entityIndex, GDevPtr dev);
+ 
+--- xserver-xlibre-xserver-25.1.0/hw/xfree86/common/xf86Globals.c.orig	2025-12-21 16:53:30.000000000 +0200
++++ xserver-xlibre-xserver-25.1.0/hw/xfree86/common/xf86Globals.c	2025-12-27 13:25:29.708315735 +0200
+@@ -131,6 +131,7 @@
+     .autoAddGPU = FALSE,
+ #endif
+     .autoBindGPU = TRUE,
++    .singleScreen = FALSE,
+ };
+ 
+ const char *xf86ConfigFile = NULL;
+--- xserver-xlibre-xserver-25.1.0/hw/xfree86/common/xf86Bus.c.orig	2025-12-27 13:25:29.701315735 +0200
++++ xserver-xlibre-xserver-25.1.0/hw/xfree86/common/xf86Bus.c	2025-12-27 13:25:29.709315735 +0200
+@@ -152,9 +152,12 @@
+ /**
+  * @return TRUE if all buses are configured and set up correctly and FALSE
+  * otherwise.
++ *
++ * If singleScreen is TRUE, add only the first screen found to xf86Screens,
++ * others may go to GPU secondary screens
+  */
+ Bool
+-xf86BusConfig(void)
++xf86BusConfig(Bool singleScreen)
+ {
+     screenLayoutPtr layout;
+     int i;
+@@ -168,7 +171,8 @@
+      *    xf86Screens[] list for each instance of the hardware found.
+      */
+     for (i = 0; i < xf86NumDrivers; i++) {
+-        xf86CallDriverProbe(xf86DriverList[i], FALSE);
++        if (xf86CallDriverProbe(xf86DriverList[i], FALSE) && singleScreen)
++            break;
+     }
+ 
+     /*
+@@ -179,7 +183,8 @@
+     if (xf86NumScreens == 0) {
+         xf86ProbeIgnorePrimary = TRUE;
+         for (i = 0; i < xf86NumDrivers && xf86NumScreens == 0; i++) {
+-            xf86CallDriverProbe(xf86DriverList[i], FALSE);
++            if (xf86CallDriverProbe(xf86DriverList[i], FALSE) && singleScreen)
++                break;
+         }
+         xf86ProbeIgnorePrimary = FALSE;
+     }
+--- xserver-xlibre-xserver-25.1.0/hw/xfree86/common/xf86platformBus.c.orig	2025-12-27 13:25:29.704315735 +0200
++++ xserver-xlibre-xserver-25.1.0/hw/xfree86/common/xf86platformBus.c	2025-12-27 13:25:29.709315735 +0200
+@@ -765,20 +765,18 @@
+     GDevPtr *devList;
+     int j;
+ 
+-    if (!drvp->platformProbe)
++    if (!drvp->platformProbe || !xf86Info.autoAddGPU)
+         return FALSE;
+ 
+     xf86MatchDevice(drvp->driverName, &devList);
+ 
+     /* if autoaddgpu devices is enabled then go find any unclaimed platform
+      * devices and add them as GPU screens */
+-    if (xf86Info.autoAddGPU) {
+-        for (j = 0; j < xf86_num_platform_devices; j++) {
+-            if (probeSingleDevice(&xf86_platform_devices[j], drvp,
+-                                  devList ?  devList[0] : NULL,
+-                                  PLATFORM_PROBE_GPU_SCREEN))
+-                foundScreen = TRUE;
+-        }
++    for (j = 0; j < xf86_num_platform_devices; j++) {
++        if (probeSingleDevice(&xf86_platform_devices[j], drvp,
++                              devList ?  devList[0] : NULL,
++                              PLATFORM_PROBE_GPU_SCREEN))
++            foundScreen = TRUE;
+     }
+ 
+     free(devList);
+--- xserver-xlibre-xserver-25.1.0/hw/xfree86/common/xf86Init.c.orig	2025-12-27 13:25:29.679315734 +0200
++++ xserver-xlibre-xserver-25.1.0/hw/xfree86/common/xf86Init.c	2025-12-27 13:25:29.709315735 +0200
+@@ -439,7 +439,7 @@
+ 	if (want_hw_access)
+ 	    xorgHWAccess = xf86EnableIO();
+ 
+-        if (xf86BusConfig() == FALSE)
++        if (xf86BusConfig(xf86Info.singleScreen) == FALSE)
+             return;
+ 
+ 
