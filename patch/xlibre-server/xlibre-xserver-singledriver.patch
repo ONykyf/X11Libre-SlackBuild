@@ -5,9 +5,9 @@
  .BI "Option \*qAllowByteSwappedClients\*q  \*q" boolean \*q
  Allow clients with a different byte-order than the server. Disabled by default.
 +.TP 7
-+.BI "Option \*qSingleScreen\*q  \*q" boolean \*q
-+Only the first screen found is added to the current layout, others may
-+become secondary GPU screens (e.g., if non-primary GPUs are used for offloading).
++.BI "Option \*qSingleDriver\*q  \*q" boolean \*q
++Only the first successfully probed driver is allowed to add screens to the current layout, others may
++add secondary GPU screens only (e.g., if non-primary GPUs are used for offloading).
 +Disabled by default.
  .SH "MODULE SECTION"
  The
@@ -19,8 +19,8 @@
      const char *debug;
      Bool autoBindGPU;
 +
-+    Bool singleScreen;          /* Add only the first screen found to xf86Screens,
-+                                 * others may go to GPU secondary screens */
++    Bool singleDriver;          /* Add only the first successfully probed driver adds primary screens,
++                                 * others may add GPU secondary screens only */
  } xf86InfoRec, *xf86InfoPtr;
  
  /* ISC's cc can't handle ~ of UL constants, so explicitly type cast them. */
@@ -30,7 +30,7 @@
      FLAG_IGLX,
      FLAG_DEBUG,
      FLAG_ALLOW_BYTE_SWAPPED_CLIENTS,
-+    FLAG_SINGLE_SCREEN,
++    FLAG_SINGLE_DRIVER,
  } FlagValues;
  
  /**
@@ -38,7 +38,7 @@
       {0}, FALSE},
      {FLAG_ALLOW_BYTE_SWAPPED_CLIENTS, "AllowByteSwappedClients", OPTV_BOOLEAN,
       {0}, FALSE},
-+    {FLAG_SINGLE_SCREEN, "SingleScreen", OPTV_BOOLEAN,
++    {FLAG_SINGLE_DRIVER, "SingleDriver", OPTV_BOOLEAN,
 +     {0}, FALSE},
      {-1, NULL, OPTV_NONE,
       {0}, FALSE},
@@ -47,16 +47,16 @@
      LogMessageVerb(from, 1, "%sutomatically binding GPU devices\n",
                     xf86Info.autoBindGPU ? "A" : "Not a");
  
-+    if (xf86IsOptionSet(FlagOptions, FLAG_SINGLE_SCREEN)) {
-+        xf86GetOptValBool(FlagOptions, FLAG_SINGLE_SCREEN,
-+                          &xf86Info.singleScreen);
++    if (xf86IsOptionSet(FlagOptions, FLAG_SINGLE_DRIVER)) {
++        xf86GetOptValBool(FlagOptions, FLAG_SINGLE_DRIVER,
++                          &xf86Info.singleDriver);
 +        from = X_CONFIG;
 +    }
 +    else {
 +        from = X_DEFAULT;
 +    }
-+    LogMessageVerb(from, 1, "Allow %s one non-GPU screen\n",
-+                   xf86Info.singleScreen ? "only" : "more than");
++    LogMessageVerb(from, 1, "Allowing to %s one driver to add non-GPU screens\n",
++                   xf86Info.singleDriver ? "only" : "more than");
 +
      /*
       * Set things up based on the config file information.  Some of these
@@ -68,7 +68,7 @@
  ScrnInfoPtr xf86FindScreenForEntity(int entityIndex);
  
 -Bool xf86BusConfig(void);
-+Bool xf86BusConfig(Bool singleScreen);
++Bool xf86BusConfig(Bool singleDriver);
  void xf86ClearEntityListForScreen(ScrnInfoPtr pScrn);
  void xf86RemoveDevFromEntity(int entityIndex, GDevPtr dev);
  
@@ -78,7 +78,7 @@
      .autoAddGPU = FALSE,
  #endif
      .autoBindGPU = TRUE,
-+    .singleScreen = FALSE,
++    .singleDriver = FALSE,
  };
  
  const char *xf86ConfigFile = NULL;
@@ -89,12 +89,12 @@
   * @return TRUE if all buses are configured and set up correctly and FALSE
   * otherwise.
 + *
-+ * If singleScreen is TRUE, add only the first screen found to xf86Screens,
-+ * others may go to GPU secondary screens
++ * If singleDriver is TRUE, add only the first successfully probed driver adds screens to xf86Screens,
++ * others may add GPU secondary screens only
   */
  Bool
 -xf86BusConfig(void)
-+xf86BusConfig(Bool singleScreen)
++xf86BusConfig(Bool singleDriver)
  {
      screenLayoutPtr layout;
      int i;
@@ -103,7 +103,7 @@
       */
      for (i = 0; i < xf86NumDrivers; i++) {
 -        xf86CallDriverProbe(xf86DriverList[i], FALSE);
-+        if (xf86CallDriverProbe(xf86DriverList[i], FALSE) && singleScreen)
++        if (xf86CallDriverProbe(xf86DriverList[i], FALSE) && singleDriver)
 +            break;
      }
  
@@ -113,7 +113,7 @@
          xf86ProbeIgnorePrimary = TRUE;
          for (i = 0; i < xf86NumDrivers && xf86NumScreens == 0; i++) {
 -            xf86CallDriverProbe(xf86DriverList[i], FALSE);
-+            if (xf86CallDriverProbe(xf86DriverList[i], FALSE) && singleScreen)
++            if (xf86CallDriverProbe(xf86DriverList[i], FALSE) && singleDriver)
 +                break;
          }
          xf86ProbeIgnorePrimary = FALSE;
@@ -154,7 +154,7 @@
  	    xorgHWAccess = xf86EnableIO();
  
 -        if (xf86BusConfig() == FALSE)
-+        if (xf86BusConfig(xf86Info.singleScreen) == FALSE)
++        if (xf86BusConfig(xf86Info.singleDriver) == FALSE)
              return;
  
  
