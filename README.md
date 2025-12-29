@@ -217,7 +217,7 @@ Then the third of the five proposed options must be chosen:
  #  for x_source_dir in xlibre-server xlibre-driver xlibre-server ; do
 ```
 
-You can even build the actual _untested_ version by going to [XLibre xserver](https://github.com/X11Libre/xserver) repository with a browser and pressing the green _Code_ button and _Download ZIP_ afterwards to get an `xserver-,aster.zip` archive.
+You can even build the actual _untested_ version by going to [XLibre xserver](https://github.com/X11Libre/xserver) repository with a browser and pressing the green _Code_ button and _Download ZIP_ afterwards to get an `xserver-master.zip` archive.
 Repack it to `*.tar.gz` format by
 ```shell
 unzip xserver-master.zip
