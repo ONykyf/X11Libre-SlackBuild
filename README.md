@@ -180,7 +180,7 @@ Then change into the main SlackBuild directory `X11Libre-SlackBuild`, open the f
 -#  for x_source_dir in proto data util xcb lib app doc xserver driver font ; do
 +  for x_source_dir in proto data util xcb lib app doc xserver driver font ; do
  
-   # This way you will build the latest vefified "bleeding edge" xserver version from master branch
+   # This way you will build the latest verified "bleeding edge" xserver version from master branch
  #  for x_source_dir in proto data util xcb lib app doc xserver-master xlibre-driver xserver-master font ; do
 ```
 
@@ -209,7 +209,7 @@ Then the third of the five proposed options must be chosen:
    # You can build Xorg as well
  #  for x_source_dir in proto data util xcb lib app doc xserver driver font ; do
  
-   # This way you will build the latest vefified "bleeding edge" xserver version from master branch
+   # This way you will build the latest verified "bleeding edge" xserver version from master branch
 -#  for x_source_dir in proto data util xcb lib app doc xserver-master xlibre-driver xserver-master font ; do
 +  for x_source_dir in proto data util xcb lib app doc xserver-master xlibre-driver xserver-master font ; do
  
@@ -225,7 +225,7 @@ rm xserver-master.zip
 tar cvzf xserver-master.tar.gz xserver-master
 rm -rf xserver-master
 ```
-and replace the file `src/xserver-master/xserver-master.tar.gz` with the obtained one. PLEASE be advised that the patches in `patch/xserver-master` may then stop working or simply fail to be applied cleanly, e.g., if they have already been meged into master.
+and replace the file `src/xserver-master/xserver-master.tar.gz` with the obtained one. PLEASE be advised that the patches in `patch/xserver-master` may then stop working or simply fail to be applied cleanly, e.g., if they have already been merged into master.
 Now it's your playground and you are free to experiment.
 
 ## nVidia legacy proprietary drivers

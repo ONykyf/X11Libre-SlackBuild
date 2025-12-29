@@ -1,0 +1,2 @@
+# Add missed comma to configure.ac:
+cat $CWD/patch/xlibre-video-ati/xlibre-video-ati-missed-comma.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }

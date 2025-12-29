@@ -152,7 +152,7 @@ no_usr_share_doc() {
   # You can build Xorg as well
 #  for x_source_dir in proto data util xcb lib app doc xserver driver font ; do
 
-  # This way you will build the latest vefified "bleeding edge" xserver version from master branch
+  # This way you will build the latest verified "bleeding edge" xserver version from master branch
 #  for x_source_dir in proto data util xcb lib app doc xserver-master xlibre-driver xserver-master font ; do
 
   # This line (re)builds xserver and drivers only, if your system is recent enough

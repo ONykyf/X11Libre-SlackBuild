@@ -14,7 +14,6 @@ CXXFLAGS=$SLKCFLAGS \
   --mandir=/usr/man \
   --docdir=/usr/doc/${PKGNAME}-${MODULAR_PACKAGE_VERSION} \
   --disable-static \
-  --enable-year2038 \
   --enable-glamor \
   --build=$ARCH-slackware-linux \
   || touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.configure_failed
