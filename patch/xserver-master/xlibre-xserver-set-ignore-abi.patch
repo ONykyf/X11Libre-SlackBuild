@@ -1,0 +1,170 @@
+--- xserver-xlibre-xserver-25.1.0/hw/xfree86/loader/loader.c.orig	2025-12-21 16:53:30.000000000 +0200
++++ xserver-xlibre-xserver-25.1.0/hw/xfree86/loader/loader.c	2025-12-25 13:53:02.897167837 +0200
+@@ -68,6 +68,10 @@
+ extern void *xorg_symbols[];
+ #endif
+ 
++Bool LoaderIgnoreAllABI;
++Bool LoaderIgnoreABI;
++Bool is_nvidia_proprietary;
++
+ void
+ LoaderInit(void)
+ {
+@@ -88,6 +92,9 @@
+                    GET_ABI_MAJOR(LoaderVersionInfo.extensionVersion),
+                    GET_ABI_MINOR(LoaderVersionInfo.extensionVersion));
+ 
++    LoaderIgnoreAllABI = FALSE;
++    LoaderIgnoreABI = FALSE;
++    is_nvidia_proprietary = FALSE;
+     LoaderInitPath();
+ }
+ 
+@@ -154,22 +161,29 @@
+         dlclose(handle);
+ }
+ 
+-Bool LoaderIgnoreAbi = FALSE;
+-Bool is_nvidia_proprietary = FALSE;
++void
++LoaderSetIgnoreAllABI(void)
++{
++    LoaderIgnoreAllABI = TRUE;
++}
++
++Bool
++LoaderGetAndFlagIgnoreABI(const char *name)
++{
++    if (LoaderIgnoreAllABI)
++        LoaderIgnoreABI = TRUE;
++    return LoaderIgnoreABI;
++}
+ 
+ void
+-LoaderSetIgnoreAbi(void)
++LoaderSetIgnoreABI(const char *name)
+ {
+-    /* Only used to keep consistency with the loader api */
+-    /* This really doesn't have to be a proc */
+-    LoaderIgnoreAbi = TRUE;
+ }
+ 
+ Bool
+ LoaderShouldIgnoreABI(void)
+ {
+-    /* The nvidia proprietary DDX driver calls this deprecated function */
+-    return is_nvidia_proprietary || LoaderIgnoreAbi;
++    return LoaderIgnoreABI;
+ }
+ 
+ int
+--- xserver-xlibre-xserver-25.1.0/hw/xfree86/loader/loaderProcs.h.orig	2025-12-21 16:53:30.000000000 +0200
++++ xserver-xlibre-xserver-25.1.0/hw/xfree86/loader/loaderProcs.h	2025-12-25 13:40:43.693144182 +0200
+@@ -82,9 +82,9 @@
+ void LoaderUnload(const char *, void *);
+ unsigned long LoaderGetModuleVersion(ModuleDescPtr mod);
+ 
+-void LoaderResetOptions(void);
+-
+-void LoaderSetIgnoreAbi(void);
++void LoaderSetIgnoreAllABI(void);
++Bool LoaderGetAndFlagIgnoreABI(const char *);
++void LoaderSetIgnoreABI(const char *);
+ 
+ const char **LoaderListDir(const char *, const char **);
+ 
+--- xserver-xlibre-xserver-25.1.0/hw/xfree86/loader/loadmod.c.orig	2025-12-21 16:53:30.000000000 +0200
++++ xserver-xlibre-xserver-25.1.0/hw/xfree86/loader/loadmod.c	2025-12-25 13:48:28.303159050 +0200
+@@ -598,19 +598,27 @@
+             vermaj = GET_ABI_MAJOR(ver);
+             vermin = GET_ABI_MINOR(ver);
+             if (abimaj != vermaj) {
+-                LogMessageVerb(LoaderIgnoreAbi ? X_WARNING : X_ERROR, 0,
+-                               "%s: module ABI major version (%d) "
++                MessageType errtype;
++                if (LoaderIgnoreABI)
++                    errtype = X_WARNING;
++                else
++                    errtype = X_ERROR;
++                LogMessageVerb(errtype, 0, "%s: module ABI major version (%d) "
+                                "doesn't match the server's version (%d)\n",
+                                module, abimaj, vermaj);
+-                if (!LoaderIgnoreAbi)
++                if (!LoaderIgnoreABI)
+                     return FALSE;
+             }
+             else if (abimin > vermin) {
+-                LogMessageVerb(LoaderIgnoreAbi ? X_WARNING : X_ERROR, 0,
+-                               "%s: module ABI minor version (%d) "
++                MessageType errtype;
++                if (LoaderIgnoreABI)
++                    errtype = X_WARNING;
++                else
++                    errtype = X_ERROR;
++                LogMessageVerb(errtype, 0, "%s: module ABI minor version (%d) "
+                                "is newer than the server's version (%d)\n",
+                                module, abimin, vermin);
+-                if (!LoaderIgnoreAbi)
++                if (!LoaderIgnoreABI)
+                     return FALSE;
+             }
+         }
+@@ -837,11 +845,6 @@
+                               "branches of the nvidia nvidia kernel drivers,\n");
+         LogMessage(X_WARNING, "LoadModule: you can try using the in-tree, open-source modesetting "
+                               "DDX driver instead of the proprietary nvidia DDX driver.\n");
+-        if (!LoaderIgnoreAbi) {
+-            /* warn every time this is hit */
+-            LogMessage(X_WARNING, "LoadModule: Implicitly ignoring abi mismatch "
+-                       "for the nvidia proprierary DDX driver\n");
+-        }
+     }
+ 
+     /* Backward compatibility, vbe and int10 are merged into int10 now */
+@@ -935,6 +938,9 @@
+         setup = initdata->setup;
+         teardown = initdata->teardown;
+ 
++        if (LoaderGetAndFlagIgnoreABI(name))
++            LogMessageVerb(X_INFO, 3, "ABI ignored for module \"%s\"\n", name);
++
+         if (vers) {
+             if (!CheckVersion(module, vers, modreq)) {
+                 if (errmaj)
+--- xserver-xlibre-xserver-25.1.0/hw/xfree86/common/xf86Init.c.orig	2025-12-21 16:53:30.000000000 +0200
++++ xserver-xlibre-xserver-25.1.0/hw/xfree86/common/xf86Init.c	2025-12-25 13:40:43.692144182 +0200
+@@ -327,9 +327,8 @@
+         /* Tell the loader the default module search path */
+         LoaderSetPath(NULL, xf86ModulePath);
+ 
+-        if (xf86Info.ignoreABI) {
+-            LoaderSetIgnoreAbi();
+-        }
++        if (xf86Info.ignoreABI)
++            LoaderSetIgnoreAllABI();
+ 
+         if (xf86DoShowOptions)
+             DoShowOptions();
+@@ -968,7 +967,7 @@
+         return 1;
+     }
+     if (!strcmp(argv[i], "-ignoreABI")) {
+-        LoaderSetIgnoreAbi();
++        LoaderSetIgnoreAllABI();
+         return 1;
+     }
+     if (!strcmp(argv[i], "-verbose")) {
+--- xserver-xlibre-xserver-25.1.0/hw/xfree86/loader/loader.h.orig	2025-12-25 23:12:58.871214268 +0200
++++ xserver-xlibre-xserver-25.1.0/hw/xfree86/loader/loader.h	2025-12-14 20:18:25.599342804 +0200
+@@ -68,8 +68,8 @@
+ } ModuleVersions;
+ extern const ModuleVersions LoaderVersionInfo;
+ 
+-extern Bool LoaderIgnoreAbi;
+-
++extern Bool LoaderIgnoreAllABI;
++extern Bool LoaderIgnoreABI;
+ extern Bool is_nvidia_proprietary;
+ 
+ /* Internal Functions */

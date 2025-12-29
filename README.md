@@ -164,23 +164,24 @@ cd <safe-place-of-packages>
 removepkg *.txz
 ```
 
-Then change into the main SlackBuild directory `X11Libre-SlackBuild`, open the file `x11libre.SlackBuild` in your text editor of choice and uncomment the line below the line `# you can build Xorg as well` and comment the second line after it containing `xlibre-server` like so:
+Then change into the main SlackBuild directory `X11Libre-SlackBuild`, open the file `x11libre.SlackBuild` in your text editor of choice and uncomment the line below the line `# You can build Xorg as well` and comment the third line before it containing `xlibre-server` like so:
 
 ```diff
---- x11libre.SlackBuild.orig
-+++ x11libre.SlackBuild
-@@ -145,9 +145,9 @@
- # before getting this script to work.  It wasn't that hard...  I think.  ;-)
- ( cd src
-   # You can build Xorg as well
--  #  for x_source_dir in proto data util xcb lib app doc xserver driver font ; do
-+  for x_source_dir in proto data util xcb lib app doc xserver driver font ; do
+--- x11libre.SlackBuild.orig	2025-12-29 20:56:45.000000000 +0200
++++ x11libre.SlackBuild	2025-12-29 20:56:55.000000000 +0200
+@@ -147,10 +147,10 @@
+   # EXACTLY ONE OF THE FOLLOWING FIVE "for" LINES MUST BE UNCOMMENTED!
+ 
    # xlibre-server is built twice due to a circular dependency on input-libinput in xlibre-driver
 -  for x_source_dir in proto data util xcb lib app doc xlibre-server xlibre-driver xlibre-server font ; do
-+  #for x_source_dir in proto data util xcb lib app doc xlibre-server xlibre-driver xlibre-server font ; do
- #  for x_source_dir in xlibre-driver xlibre-server ; do
-     # See if $1 is a source directory like "lib":
-     if [ ! -z "$1" ]; then
++#  for x_source_dir in proto data util xcb lib app doc xlibre-server xlibre-driver xlibre-server font ; do
+ 
+   # You can build Xorg as well
+-#  for x_source_dir in proto data util xcb lib app doc xserver driver font ; do
++  for x_source_dir in proto data util xcb lib app doc xserver driver font ; do
+ 
+   # This way you will build the latest vefified "bleeding edge" xserver version from master branch
+ #  for x_source_dir in proto data util xcb lib app doc xserver-master xlibre-driver xserver-master font ; do
 ```
 
 Grab another cup of coffee and run:
@@ -189,7 +190,43 @@ Grab another cup of coffee and run:
 ./x11libre.SlackBuild
 ```
 
-You will get a brand new Xorg... but what for?.
+You will get a brand new Xorg... but what for?
+
+## Building with xserver from 'master' branch
+
+If you are adventurous and want to try the latest development version of XLibre xserver that I have successfully tried out myself, the tree contains sources for it as well in the `src/xserver-master` subdirectory.
+Then the third of the five proposed options must be chosen:
+```diff
+--- x11libre.SlackBuild.orig	2025-12-29 20:56:45.000000000 +0200
++++ x11libre.SlackBuild	2025-12-29 21:05:56.000000000 +0200
+@@ -147,13 +147,13 @@
+   # EXACTLY ONE OF THE FOLLOWING FIVE "for" LINES MUST BE UNCOMMENTED!
+ 
+   # xlibre-server is built twice due to a circular dependency on input-libinput in xlibre-driver
+-  for x_source_dir in proto data util xcb lib app doc xlibre-server xlibre-driver xlibre-server font ; do
++#  for x_source_dir in proto data util xcb lib app doc xlibre-server xlibre-driver xlibre-server font ; do
+ 
+   # You can build Xorg as well
+ #  for x_source_dir in proto data util xcb lib app doc xserver driver font ; do
+ 
+   # This way you will build the latest vefified "bleeding edge" xserver version from master branch
+-#  for x_source_dir in proto data util xcb lib app doc xserver-master xlibre-driver xserver-master font ; do
++  for x_source_dir in proto data util xcb lib app doc xserver-master xlibre-driver xserver-master font ; do
+ 
+   # This line (re)builds xserver and drivers only, if your system is recent enough
+ #  for x_source_dir in xlibre-server xlibre-driver xlibre-server ; do
+```
+
+You can even build the actual _untested_ version by going to [XLibre xserver](https://github.com/X11Libre/xserver) repository with a browser and pressing the green _Code_ button and _Download ZIP_ afterwards to get an `xserver-,aster.zip` archive.
+Repack it to `*.tar.gz` format by
+```shell
+unzip xserver-master.zip
+rm xserver-master.zip
+tar cvzf xserver-master.tar.gz xserver-master
+rm -rf xserver-master
+```
+and replace the file `src/xserver-master/xserver-master.tar.gz` with the obtained one. PLEASE be advised that the patches in `patch/xserver-master` may then stop working or simply fail to be applied cleanly, e.g., if they have already been meged into master.
+Now it's your playground and you are free to experiment.
 
 ## nVidia legacy proprietary drivers
 

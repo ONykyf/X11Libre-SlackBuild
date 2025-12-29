@@ -32,3 +32,12 @@
                              LogMessageVerb(X_CONFIG, 1, "OutputClass \"%s\" ModulePath for modules %s overridden with \"%s\"\n",
                                      cl->identifier, cl->modules, driver_path);
                          } else {
+--- xserver-master/config/10-nvidia.conf.in.orig	2025-12-29 20:11:59.589165363 +0200
++++ xserver-master/config/10-nvidia.conf.in	2025-12-29 21:33:51.073322531 +0200
+@@ -13,5 +13,5 @@
+ 	Module "glxserver_nvidia"
+ 	Option "AllowEmptyInitialConfiguration"
+ 	Option "IgnoreABI"
+-	ModulePath "@libdir@/nvidia/xorg"
++	ModulePath "@libdir@/nvidia/xorg,"
+ EndSection

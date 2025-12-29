@@ -144,11 +144,23 @@ no_usr_share_doc() {
 # in the "magic order".  I built mine by hand through trial-and-error
 # before getting this script to work.  It wasn't that hard...  I think.  ;-)
 ( cd src
-  # You can build Xorg as well
-  #  for x_source_dir in proto data util xcb lib app doc xserver driver font ; do
+  # EXACTLY ONE OF THE FOLLOWING FIVE "for" LINES MUST BE UNCOMMENTED!
+
   # xlibre-server is built twice due to a circular dependency on input-libinput in xlibre-driver
   for x_source_dir in proto data util xcb lib app doc xlibre-server xlibre-driver xlibre-server font ; do
-#  for x_source_dir in xlibre-driver xlibre-server ; do
+
+  # You can build Xorg as well
+#  for x_source_dir in proto data util xcb lib app doc xserver driver font ; do
+
+  # This way you will build the latest vefified "bleeding edge" xserver version from master branch
+#  for x_source_dir in proto data util xcb lib app doc xserver-master xlibre-driver xserver-master font ; do
+
+  # This line (re)builds xserver and drivers only, if your system is recent enough
+#  for x_source_dir in xlibre-server xlibre-driver xlibre-server ; do
+
+  # Or the same drivers but xserver from master
+#  for x_source_dir in xserver-master xlibre-driver xserver-master ; do
+
     # See if $1 is a source directory like "lib":
     if [ ! -z "$1" ]; then
       if [ ! "$1" = "${x_source_dir}" ]; then

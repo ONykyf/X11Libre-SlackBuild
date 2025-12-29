@@ -1,0 +1,112 @@
+--- xserver-xlibre-xserver-25.0.0.12/hw/xfree86/common/xf86platformBus.c.orig	2025-10-17 14:59:14.238113706 +0300
++++ xserver-xlibre-xserver-25.0.0.12/hw/xfree86/common/xf86platformBus.c	2025-10-17 16:27:58.464736677 +0300
+@@ -279,7 +279,7 @@
+     Bool pci = TRUE;
+     XF86ConfOutputClassPtr cl, cl_head = (xf86configptr) ?
+             xf86configptr->conf_outputclass_lst : NULL;
+-    char *driver_path, *path = NULL;
++    char *driver_path, *path = NULL, *ldpath = NULL;
+     char *curr, *next, *copy;
+ 
+     config_odev_probe(xf86PlatformDeviceProbe);
+@@ -364,10 +364,26 @@
+                                 path ? path : xf86ModulePath);
+                         LogMessageVerb(X_CONFIG, 1, "OutputClass \"%s\" default ModulePath extended to \"%s\"\n",
+                                 cl->identifier, path);
++                        free(driver_path);
+                 }
+                 /* Otherwise global module search path is left unchanged */
+             }
+ 
++            if (cl->librarypath) {
++                if (*(cl->librarypath)) {
++                    driver_path = ldpath; /* Reuse for temporary storage */
++                    LogMessageVerb(X_CONFIG, 1, "OutputClass \"%s\" LibraryPath \"%s\" overridden with \"%s\"\n",
++                            cl->identifier, ldpath ? ldpath : "(null)", cl->librarypath);
++                    XNFasprintf(&ldpath, "%s", cl->librarypath);
++                    free(driver_path);
++                } else {
++                    LogMessageVerb(X_CONFIG, 1, "OutputClass \"%s\" LibraryPath \"%s\" reset to empty\n",
++                            cl->identifier, ldpath ? ldpath : "(null)");
++                    if (ldpath) free(ldpath);
++                    ldpath = NULL;
++                }
++            }
++
+             if (xf86CheckBoolOption(cl->option_lst, "IgnoreABI", FALSE)) {
+                 if (cl->driver) {
+                     LogMessageVerb(X_CONFIG, 1, "OutputClass \"%s\" sets driver %s to ignore ABI for \"%s\" managed by %s\n",
+@@ -412,6 +428,12 @@
+             LoaderSetPath(NULL, xf86ModulePath);
+     }
+ 
++    if (ldpath) {
++        setenv("LD_LIBRARY_PATH", ldpath, 1);
++        LogMessageVerb(X_CONFIG, 1, "LD_LIBRARY_PATH set to \"%s\"\n", ldpath);
++        free(ldpath);
++    }
++
+     /* First see if there is an OutputClass match marking a device as primary */
+     for (i = 0; i < xf86_num_platform_devices; i++) {
+         struct xf86_platform_device *dev = &xf86_platform_devices[i];
+--- xserver-xlibre-xserver-25.0.0.12/hw/xfree86/parser/OutputClass.c.orig	2025-10-17 14:39:17.475041696 +0300
++++ xserver-xlibre-xserver-25.0.0.12/hw/xfree86/parser/OutputClass.c	2025-10-17 16:29:17.518951325 +0300
+@@ -40,6 +40,7 @@
+     {DRIVER, "driver"},
+     {MODULE, "module"},
+     {MODULEPATH, "modulepath"},
++    {LIBRARYPATH, "librarypath"},
+     {OPTION, "option"},
+     {MATCH_DRIVER, "matchdriver"},
+     {MATCH_LAYOUT, "matchlayout"},
+@@ -130,6 +131,13 @@
+                 ptr->modulepath = xf86_lex_val.str;
+             }
+             break;
++        case LIBRARYPATH:
++            if (xf86getSubToken(&(ptr->comment)) != XF86_TOKEN_STRING)
++                Error(QUOTE_MSG, "LibraryPath");
++            if (ptr->librarypath)
++                free(ptr->librarypath);
++            ptr->librarypath = xf86_lex_val.str;
++            break;
+         case OPTION:
+             ptr->option_lst = xf86parseOption(ptr->option_lst);
+             break;
+@@ -191,6 +199,8 @@
+             fprintf(cf, "\tModule          \"%s\"\n", ptr->modules);
+         if (ptr->modulepath)
+             fprintf(cf, "\tModulePath      \"%s\"\n", ptr->modulepath);
++        if (ptr->librarypath)
++            fprintf(cf, "\tLibraryPath     \"%s\"\n", ptr->librarypath);
+ 
+         xorg_list_for_each_entry(group, &ptr->match_driver, entry) {
+             fprintf(cf, "\tMatchDriver     \"");
+--- xserver-xlibre-xserver-25.0.0.12/hw/xfree86/parser/xf86tokens.h.orig	2025-10-17 14:42:39.647015859 +0300
++++ xserver-xlibre-xserver-25.0.0.12/hw/xfree86/parser/xf86tokens.h	2025-10-17 14:43:31.889115807 +0300
+@@ -258,6 +258,7 @@
+ 
+     /* OutputClass Tokens */
+     MODULE,
++    LIBRARYPATH,
+ } ParserTokens;
+ 
+ #endif                          /* _xf86_tokens_h */
+--- xserver-xlibre-xserver-25.0.0.12/hw/xfree86/parser/xf86Parser.h.orig	2025-10-17 14:40:35.444168802 +0300
++++ xserver-xlibre-xserver-25.0.0.12/hw/xfree86/parser/xf86Parser.h	2025-10-17 14:46:17.698751565 +0300
+@@ -361,6 +361,7 @@
+     char *driver;
+     char *modules;
+     char *modulepath;
++    char *librarypath;
+     struct xorg_list match_driver;
+     struct xorg_list match_layout;
+     XF86OptionPtr option_lst;
+--- xserver-xlibre-xserver-25.0.0.12/config/10-nvidia.conf.in.orig	2025-10-17 16:30:28.240159845 +0300
++++ xserver-xlibre-xserver-25.0.0.12/config/10-nvidia.conf.in	2025-10-17 16:30:09.942788908 +0300
+@@ -16,4 +16,5 @@
+ 	#Add this to ServerFlags if your xserver does not recognize it in OutputClass
+ 	Option "IgnoreABI"
+ 	ModulePath "@libdir@/nvidia/xorg"
++	LibraryPath "@libdir@/nvidia"
+ EndSection

@@ -1,0 +1,46 @@
+# We've used this one forever.
+zcat $CWD/patch/xserver-master/x11.startwithblackscreen.diff.gz | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+
+# Without this patch, combo mouse/keyboard (such as Logitech through unified
+# receiver) may be unable to set the desired keyboard layout.
+zcat $CWD/patch/xserver-master/xorg-server.combo.mouse.keyboard.layout.patch.gz | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+
+# Fix a segfault in xorg-server-1.20.0. Odds are good this will be fixed in
+# the next xorg-server and will no longer apply then.
+zcat $CWD/patch/xserver-master/fix-nouveau-segfault.diff.gz | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+
+# The upstream nouveau developers recommend this. On newer nvidia cards it works
+# better to use the generic modesetting ddx rather than nouveau.
+# Reference: https://bugs.freedesktop.org/show_bug.cgi?id=94844
+# Added here 2018/7.
+zcat $CWD/patch/xserver-master/0001-xfree86-use-modesetting-driver-by-default-on-GeForce.patch.gz | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+
+# Only use Intel DDX with pre-gen4 hardware. Newer hardware will the the modesetting driver by default:
+zcat $CWD/patch/xserver-master/06_use-intel-only-on-pre-gen4.diff.gz | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+
+# Flush pending glamor operations before CloseScreen.
+cat $CWD/patch/xserver-master/xlibre-xserver-flush-pending-before-closescreen.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+
+# Simplify setting IgnoreABI for certain drivers.
+cat $CWD/patch/xserver-master/xlibre-xserver-set-ignore-abi.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+cat $CWD/patch/xserver-master/xlibre-xserver-outputclass-ignore-abi.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+cat $CWD/patch/xserver-master/xlibre-xserver-install-10-nvidia.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+cat $CWD/patch/xserver-master/xlibre-xserver-update-man-ignore-abi.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+
+# Get rid of XNFasprintf in favor of asprintf.
+cat $CWD/patch/xserver-master/xlibre-xserver-no-xnfasprintf.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+
+# More checks for PCI multi-CRT cards.
+cat $CWD/patch/xserver-master/xlibre-xserver-pci-multi-crt.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+
+# More checks for udev multi-CRT cards.
+cat $CWD/patch/xserver-master/xlibre-xserver-platform-multi-crt.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+
+# Find BusID for modesetting driven /dev/dri/cardX devices.
+cat $CWD/patch/xserver-master/xlibre-xserver-fb-busid.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+
+# Allow to replace ModulePath for specific drivers and modules.
+cat $CWD/patch/xserver-master/xlibre-xserver-modulepath-replace.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+
+# Add SingleDriver option to prevent adding non-GPU screens by more that one driver.
+cat $CWD/patch/xserver-master/xlibre-xserver-singledriver.patch | patch -p1 --verbose -b -z .orig || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }

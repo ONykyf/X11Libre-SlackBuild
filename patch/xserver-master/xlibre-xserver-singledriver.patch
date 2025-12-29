@@ -1,0 +1,179 @@
+diff --git a/hw/xfree86/common/xf86Bus.c b/hw/xfree86/common/xf86Bus.c
+index 138943298..0d19a4b57 100644
+--- a/hw/xfree86/common/xf86Bus.c
++++ b/hw/xfree86/common/xf86Bus.c
+@@ -144,9 +144,12 @@ xf86BusConfigMatch(ScrnInfoPtr scrnInfo, Bool is_gpu) {
+ /**
+  * @return TRUE if all buses are configured and set up correctly and FALSE
+  * otherwise.
++ *
++ * If singleDriver is TRUE, then only the first successfully probed driver adds screens to xf86Screens,
++ * others may add GPU secondary screens only
+  */
+ Bool
+-xf86BusConfig(void)
++xf86BusConfig(Bool singleDriver)
+ {
+     screenLayoutPtr layout;
+     int i;
+@@ -160,7 +163,9 @@ xf86BusConfig(void)
+      *    xf86Screens[] list for each instance of the hardware found.
+      */
+     for (i = 0; i < xf86NumDrivers; i++) {
+-        xf86CallDriverProbe(xf86DriverList[i], FALSE);
++        /* The order of the && operands below is essential! */
++        if (xf86CallDriverProbe(xf86DriverList[i], FALSE) && singleDriver)
++            break;
+     }
+ 
+     /*
+@@ -171,7 +176,9 @@ xf86BusConfig(void)
+     if (xf86NumScreens == 0) {
+         xf86ProbeIgnorePrimary = TRUE;
+         for (i = 0; i < xf86NumDrivers && xf86NumScreens == 0; i++) {
+-            xf86CallDriverProbe(xf86DriverList[i], FALSE);
++            /* The order of the && operands below is essential! */
++            if (xf86CallDriverProbe(xf86DriverList[i], FALSE) && singleDriver)
++                break;
+         }
+         xf86ProbeIgnorePrimary = FALSE;
+     }
+diff --git a/hw/xfree86/common/xf86Bus.h b/hw/xfree86/common/xf86Bus.h
+index 933bef492..6bec9fa7d 100644
+--- a/hw/xfree86/common/xf86Bus.h
++++ b/hw/xfree86/common/xf86Bus.h
+@@ -77,7 +77,7 @@ Bool xf86IsEntityPrimary(int entityIndex);
+ _X_EXPORT /* only for internal int10 module - not supposed to be used by OOT drivers */
+ ScrnInfoPtr xf86FindScreenForEntity(int entityIndex);
+ 
+-Bool xf86BusConfig(void);
++Bool xf86BusConfig(Bool singleDriver);
+ void xf86ClearEntityListForScreen(ScrnInfoPtr pScrn);
+ void xf86RemoveDevFromEntity(int entityIndex, GDevPtr dev);
+ 
+diff --git a/hw/xfree86/common/xf86Config.c b/hw/xfree86/common/xf86Config.c
+index 0a2e3a745..8dce643fb 100644
+--- a/hw/xfree86/common/xf86Config.c
++++ b/hw/xfree86/common/xf86Config.c
+@@ -657,6 +657,7 @@ typedef enum {
+     FLAG_IGLX,
+     FLAG_DEBUG,
+     FLAG_ALLOW_BYTE_SWAPPED_CLIENTS,
++    FLAG_SINGLE_DRIVER,
+ } FlagValues;
+ 
+ /**
+@@ -718,6 +719,8 @@ static OptionInfoRec FlagOptions[] = {
+      {0}, FALSE},
+     {FLAG_ALLOW_BYTE_SWAPPED_CLIENTS, "AllowByteSwappedClients", OPTV_BOOLEAN,
+      {0}, FALSE},
++    {FLAG_SINGLE_DRIVER, "SingleDriver", OPTV_BOOLEAN,
++     {0}, FALSE},
+     {-1, NULL, OPTV_NONE,
+      {0}, FALSE},
+ };
+@@ -815,6 +818,17 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
+     LogMessageVerb(from, 1, "%sutomatically binding GPU devices\n",
+                    xf86Info.autoBindGPU ? "A" : "Not a");
+ 
++    if (xf86IsOptionSet(FlagOptions, FLAG_SINGLE_DRIVER)) {
++        xf86GetOptValBool(FlagOptions, FLAG_SINGLE_DRIVER,
++                          &xf86Info.singleDriver);
++        from = X_CONFIG;
++    }
++    else {
++        from = X_DEFAULT;
++    }
++    LogMessageVerb(from, 1, "Allowing %s one driver to add non-GPU screens\n",
++                   xf86Info.singleDriver ? "only" : "more than");
++
+     /*
+      * Set things up based on the config file information.  Some of these
+      * settings may be overridden later when the command line options are
+diff --git a/hw/xfree86/common/xf86Globals.c b/hw/xfree86/common/xf86Globals.c
+index 58e20dcde..5c7d5820b 100644
+--- a/hw/xfree86/common/xf86Globals.c
++++ b/hw/xfree86/common/xf86Globals.c
+@@ -131,6 +131,7 @@ xf86InfoRec xf86Info = {
+     .autoAddGPU = FALSE,
+ #endif
+     .autoBindGPU = TRUE,
++    .singleDriver = FALSE,
+ };
+ 
+ const char *xf86ConfigFile = NULL;
+diff --git a/hw/xfree86/common/xf86Init.c b/hw/xfree86/common/xf86Init.c
+index 33e2c4aad..557f357d5 100644
+--- a/hw/xfree86/common/xf86Init.c
++++ b/hw/xfree86/common/xf86Init.c
+@@ -440,7 +440,7 @@ InitOutput(int argc, char **argv)
+ 	if (want_hw_access)
+ 	    xorgHWAccess = xf86EnableIO();
+ 
+-        if (xf86BusConfig() == FALSE)
++        if (xf86BusConfig(xf86Info.singleDriver) == FALSE)
+             return;
+ 
+ 
+diff --git a/hw/xfree86/common/xf86Privstr.h b/hw/xfree86/common/xf86Privstr.h
+index 5a1db5d1c..38100c4db 100644
+--- a/hw/xfree86/common/xf86Privstr.h
++++ b/hw/xfree86/common/xf86Privstr.h
+@@ -94,6 +94,9 @@ typedef struct {
+     Bool autoAddGPU;
+     const char *debug;
+     Bool autoBindGPU;
++
++    Bool singleDriver;          /* Only the first successfully probed driver adds primary screens,
++                                 * others may add GPU secondary screens only */
+ } xf86InfoRec, *xf86InfoPtr;
+ 
+ /* ISC's cc can't handle ~ of UL constants, so explicitly type cast them. */
+diff --git a/hw/xfree86/man/xorg.conf.man b/hw/xfree86/man/xorg.conf.man
+index 18335aabc..08e2ee56d 100644
+--- a/hw/xfree86/man/xorg.conf.man
++++ b/hw/xfree86/man/xorg.conf.man
+@@ -687,6 +687,11 @@ Unset by default.
+ .TP 7
+ .BI "Option \*qAllowByteSwappedClients\*q  \*q" boolean \*q
+ Allow clients with a different byte-order than the server. Disabled by default.
++.TP 7
++.BI "Option \*qSingleDriver\*q  \*q" boolean \*q
++Only the first successfully probed driver is allowed to add screens to the current layout, others may
++add secondary GPU screens only (e.g., if non-primary GPUs are used for offloading).
++Disabled by default.
+ .SH "MODULE SECTION"
+ The
+ .B Module
+diff --git a/hw/xfree86/common/xf86platformBus.c b/hw/xfree86/common/xf86platformBus.c
+index 1fd4514a3..0f3a9d365 100644
+--- a/hw/xfree86/common/xf86platformBus.c
++++ b/hw/xfree86/common/xf86platformBus.c
+@@ -640,20 +640,18 @@ xf86platformAddGPUDevices(DriverPtr drvp)
+     GDevPtr *devList;
+     int j;
+ 
+-    if (!drvp->platformProbe)
++    if (!drvp->platformProbe || !xf86Info.autoAddGPU)
+         return FALSE;
+ 
+     xf86MatchDevice(drvp->driverName, &devList);
+ 
+     /* if autoaddgpu devices is enabled then go find any unclaimed platform
+      * devices and add them as GPU screens */
+-    if (xf86Info.autoAddGPU) {
+-        for (j = 0; j < xf86_num_platform_devices; j++) {
+-            if (probeSingleDevice(&xf86_platform_devices[j], drvp,
+-                                  devList ?  devList[0] : NULL,
+-                                  PLATFORM_PROBE_GPU_SCREEN))
+-                foundScreen = TRUE;
+-        }
++    for (j = 0; j < xf86_num_platform_devices; j++) {
++        if (probeSingleDevice(&xf86_platform_devices[j], drvp,
++                              devList ?  devList[0] : NULL,
++                              PLATFORM_PROBE_GPU_SCREEN))
++            foundScreen = TRUE;
+     }
+ 
+     free(devList);
+

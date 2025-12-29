@@ -1,0 +1,9 @@
+--- xserver-xlibre-xserver-25.1.0/config/10-nvidia.conf.in.orig	2025-12-25 14:45:31.969268608 +0200
++++ xserver-xlibre-xserver-25.1.0/config/10-nvidia.conf.in	2025-12-25 14:46:05.011269665 +0200
+@@ -12,5 +12,6 @@
+ 	Module "glx"
+ 	Module "glxserver_nvidia"
+ 	Option "AllowEmptyInitialConfiguration"
++	Option "IgnoreABI"
+ 	ModulePath "@libdir@/nvidia/xorg"
+ EndSection
