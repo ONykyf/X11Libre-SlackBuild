@@ -176,6 +176,8 @@ no_usr_share_doc() {
         PKGARCH=$ARCH
         if [ "$x_source_dir" = "xlibre-server" ] ; then
           PKGNAME="xlibre-server"
+        elif [ "$x_source_dir" = "xserver-master" ] ; then
+          PKGNAME="xserver-master"
         elif [ "$x_source_dir" = "xlibre-driver" ] ; then
             PKGNAME=xlibre-"`echo $x_pkg | cut -f 2-3 -d -`"
             if ls $CWD/src/xlibre-server/xserver-xlibre-xserver-*.tar.gz > /dev/null ; then
@@ -222,7 +224,11 @@ no_usr_share_doc() {
         fi
 
         # Let's figure out the version number on the modular package:
-        MODULAR_PACKAGE_VERSION=$(echo $x_pkg | rev | cut -f 3- -d . | cut -f 1 -d - | rev)
+        if [ "$PKGNAME" = "xserver-master" ] ; then
+          MODULAR_PACKAGE_VERSION="25.1.99"
+        else
+          MODULAR_PACKAGE_VERSION=$(echo $x_pkg | rev | cut -f 3- -d . | cut -f 1 -d - | rev)
+        fi
 
         # If this variable is passed to the script, nothing will be built.
         # Instead, a list of packages to be built will be output.
@@ -238,7 +244,7 @@ no_usr_share_doc() {
             echo "xorg-server-xephyr-${MODULAR_PACKAGE_VERSION}-${PKGARCH}-${MODBUILD}.txz"
             echo "xorg-server-xwayland-${MODULAR_PACKAGE_VERSION}-${PKGARCH}-${MODBUILD}.txz"
             echo "xorg-server-${MODULAR_PACKAGE_VERSION}-${PKGARCH}-${MODBUILD}.txz"
-          elif [ "${PKGNAME}" = "xlibre-server" ]; then
+          elif [ "${PKGNAME}" = "xlibre-server" -o "${PKGNAME}" = "xserver-master" ]; then
             echo "xlibre-server-xnest-${MODULAR_PACKAGE_VERSION}-${PKGARCH}-${MODBUILD}.txz"
             echo "xlibre-server-xvfb-${MODULAR_PACKAGE_VERSION}-${PKGARCH}-${MODBUILD}.txz"
             echo "xlibre-server-xephyr-${MODULAR_PACKAGE_VERSION}-${PKGARCH}-${MODBUILD}.txz"
@@ -259,6 +265,10 @@ no_usr_share_doc() {
         # If any patches are needed, call this script to apply them:
         if [ -r $CWD/patch/${PKGNAME}.patch ]; then
           . $CWD/patch/${PKGNAME}.patch
+        fi
+
+        if [ "$PKGNAME" = "xserver-master" ] ; then
+          sed -i -r "s|^( *)version: .*$|\1version: '25.1.99',|" ./meson.build
         fi
 
         # I heard somewhere that -O2 breaks some chipset or another.  If you encounter
