@@ -41,6 +41,3 @@ cat $CWD/patch/xserver-master/xlibre-xserver-fb-busid.patch | patch -p1 --verbos
 
 # Allow to replace ModulePath for specific drivers and modules.
 cat $CWD/patch/xserver-master/xlibre-xserver-modulepath-replace.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
-
-# Add SingleDriver option to prevent adding non-GPU screens by more that one driver.
-cat $CWD/patch/xserver-master/xlibre-xserver-singledriver.patch | patch -p1 --verbose -b -z .orig || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
