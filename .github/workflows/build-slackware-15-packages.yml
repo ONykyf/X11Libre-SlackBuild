@@ -1,6 +1,7 @@
 name: Build XLibre packages for Slackware 15.0
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
