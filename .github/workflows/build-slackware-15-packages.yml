@@ -1,6 +1,7 @@
 name: Build XLibre packages for Slackware 15.0
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -26,9 +27,9 @@ jobs:
     container:
       image: aclemons/slackware:15.0-full
     steps:
+      - name: Disk Space Reclaimer
+        uses: insightsengineering/disk-space-reclaimer@v1.1.0
       - uses: actions/checkout@v5
-      - name: Remove a huge unnecessary tools folder
-        run: rm -rf /opt/hostedtoolcache
       - name: Download testing and extra packages
         run: |
           mkdir testing && cd testing
