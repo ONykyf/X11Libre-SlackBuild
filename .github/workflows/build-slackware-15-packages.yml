@@ -1,6 +1,7 @@
 name: Build XLibre packages for Slackware 15.0
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -20,22 +21,23 @@ jobs:
     services:
       docker:
         image: docker:dind
-        options: --privileged
+        options: --privileged --rm
         volumes:
           - /var/run/docker.sock:/var/run/docker.sock:ro
     container:
       image: aclemons/slackware:15.0-full
     steps:
+      - uses: kacus/github-action-container-cleanup@v1.0.0
+      - name: Disk Space Reclaimer
+        uses: insightsengineering/disk-space-reclaimer@v1.1.0
       - uses: actions/checkout@v5
-      - name: Remove a huge unnecessary tools folder
-        run: rm -rf /opt/hostedtoolcache
       - name: Download testing and extra packages
         run: |
           mkdir testing && cd testing
           wget --quiet --show-progress --progress=bar:force:noscroll -r -np -nd --accept libdrm*.t?z,libva*.t?z,mesa*.t?z --no-check-certificate https://mirrors.slackware.com/slackware/slackware64-15.0/testing/packages/ 2>&1 | grep -E -v "(index\.html|robots\.txt)"
           cd ..
           mkdir extra && cd extra
-          wget --quiet --show-progress --progress=bar:force:noscroll -r -np -nd --accept=llvm-20*.t?z --no-check-certificate https://mirrors.slackware.com/slackware/slackware64-15.0/extra/ 2>&1 | grep -E -v "(index\.html|robots\.txt)"
+          wget --quiet --show-progress --progress=bar:force:noscroll -r -np -nd --accept=llvm*-compat.t?z,llvm-*.t?z --no-check-certificate https://mirrors.slackware.com/slackware/slackware64-15.0/extra/ 2>&1 | grep -E -v "(index\.html|robots\.txt)"
           cd ..
       - name: Upgrade packages
         run: |
