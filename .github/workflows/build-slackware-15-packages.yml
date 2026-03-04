@@ -37,7 +37,7 @@ jobs:
           wget --quiet --show-progress --progress=bar:force:noscroll -r -np -nd --accept libdrm*.t?z,libva*.t?z,mesa*.t?z --no-check-certificate https://mirrors.slackware.com/slackware/slackware64-15.0/testing/packages/ 2>&1 | grep -E -v "(index\.html|robots\.txt)"
           cd ..
           mkdir extra && cd extra
-          wget --quiet --show-progress --progress=bar:force:noscroll -r -np -nd --accept=llvm-20*.t?z --no-check-certificate https://mirrors.slackware.com/slackware/slackware64-15.0/extra/ 2>&1 | grep -E -v "(index\.html|robots\.txt)"
+          wget --quiet --show-progress --progress=bar:force:noscroll -r -np -nd --accept=llvm*-compat.t?z,llvm-*.t?z --no-check-certificate https://mirrors.slackware.com/slackware/slackware64-15.0/extra/ 2>&1 | grep -E -v "(index\.html|robots\.txt)"
           cd ..
       - name: Upgrade packages
         run: |
