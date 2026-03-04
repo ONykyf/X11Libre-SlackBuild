@@ -21,12 +21,13 @@ jobs:
     services:
       docker:
         image: docker:dind
-        options: --privileged
+        options: --privileged --rm
         volumes:
           - /var/run/docker.sock:/var/run/docker.sock:ro
     container:
       image: aclemons/slackware:15.0-full
     steps:
+      - uses: kacus/github-action-container-cleanup@v1.0.0
       - name: Disk Space Reclaimer
         uses: insightsengineering/disk-space-reclaimer@v1.1.0
       - uses: actions/checkout@v5
