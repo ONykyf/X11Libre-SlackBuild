@@ -102,8 +102,8 @@
      struct xorg_list match_driver;
      struct xorg_list match_layout;
      XF86OptionPtr option_lst;
---- xserver-xlibre-xserver-25.0.0.12/config/10-nvidia.conf.in.orig	2025-10-17 16:30:28.240159845 +0300
-+++ xserver-xlibre-xserver-25.0.0.12/config/10-nvidia.conf.in	2025-10-17 16:30:09.942788908 +0300
+--- xserver-xlibre-xserver-25.0.0.12/hw/xfree86/compat/10-nvidia.conf.in.orig	2025-10-17 16:30:28.240159845 +0300
++++ xserver-xlibre-xserver-25.0.0.12/hw/xfree86/compat/10-nvidia.conf.in	2025-10-17 16:30:09.942788908 +0300
 @@ -16,4 +16,5 @@
  	#Add this to ServerFlags if your xserver does not recognize it in OutputClass
  	Option "IgnoreABI"
