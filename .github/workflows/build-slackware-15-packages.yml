@@ -50,7 +50,12 @@ jobs:
       - name: Build XLibre packages
         # It would be better to not assign ownership of the directory to the root user... But root is needed
         # to upgrade the system packages needed to build XLibre.
-        run: ./x11libre.SlackBuild
+        # Also, build the xlibre server and drivers again because the server and some drivers don't get
+        # built the first time.
+        run: |
+          ./x11libre.SlackBuild
+          ./x11libre.SlackBuild xlibre-server
+          ./x11libre.SlackBuild xlibre-driver
       - name: Generate blacklist file
         run: |
           mkdir build_artifacts
