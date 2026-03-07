@@ -39,9 +39,7 @@ jobs:
           wget --quiet --show-progress --progress=bar:force:noscroll -r -np -nd --accept=llvm*-compat.t?z,llvm-*.t?z --no-check-certificate https://mirrors.slackware.com/slackware/slackware64-15.0/extra/ 2>&1 | grep -E -v "(index\.html|robots\.txt)"
           cd ..
       - name: Upgrade packages
-        run: |
-          upgradepkg --reinstall testing/*
-          upgradepkg extra/*
+        run: upgradepkg --reinstall --install-new testing/* extra/*
       - name: Pre-build stage
         run: |
           chown -R root:users $GITHUB_WORKSPACE
@@ -50,12 +48,7 @@ jobs:
       - name: Build XLibre packages
         # It would be better to not assign ownership of the directory to the root user... But root is needed
         # to upgrade the system packages needed to build XLibre.
-        # Also, build the xlibre server and drivers again because the server and some drivers don't get
-        # built the first time.
-        run: |
-          ./x11libre.SlackBuild
-          ./x11libre.SlackBuild xlibre-server
-          ./x11libre.SlackBuild xlibre-driver
+        run: ./x11libre.SlackBuild
       - name: Generate blacklist file
         run: |
           mkdir build_artifacts
