@@ -53,7 +53,6 @@ jobs:
         run: ./x11libre.SlackBuild
       - name: Generate blacklist file
         run: |
-          cd ..
           mkdir build_artifacts
           BLACKLIST_FILE=build_artifacts/blacklist $GITHUB_WORKSPACE/generate_slackpkg_blacklist.sh
           cat << EOF >> build_artifacts/blacklist
