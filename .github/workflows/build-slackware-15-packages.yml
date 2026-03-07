@@ -42,17 +42,18 @@ jobs:
         run: |
           upgradepkg --reinstall testing/*
           upgradepkg extra/*
-      - name: Build XLibre packages
-        # It would be better to not assign ownership of the directory to the root user... But root is needed
-        # to upgrade the system packages needed to build XLibre.
+      - name: Pre-build stage
         run: |
           chown -R root:users $GITHUB_WORKSPACE
           cd $GITHUB_WORKSPACE
-          chmod +x x11libre.SlackBuild
-          ./x11libre.SlackBuild
-          cd ..
+          PRINT_PACKAGE_NAME=1 ./x11libre.SlackBuild | sort
+      - name: Build XLibre packages
+        # It would be better to not assign ownership of the directory to the root user... But root is needed
+        # to upgrade the system packages needed to build XLibre.
+        run: ./x11libre.SlackBuild
       - name: Generate blacklist file
         run: |
+          cd ..
           mkdir build_artifacts
           BLACKLIST_FILE=build_artifacts/blacklist $GITHUB_WORKSPACE/generate_slackpkg_blacklist.sh
           cat << EOF >> build_artifacts/blacklist
