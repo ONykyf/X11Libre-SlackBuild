@@ -144,7 +144,7 @@ no_usr_share_doc() {
 # in the "magic order".  I built mine by hand through trial-and-error
 # before getting this script to work.  It wasn't that hard...  I think.  ;-)
 ( cd src
-  # EXACTLY ONE OF THE FOLLOWING FIVE "for" LINES MUST BE UNCOMMENTED!
+  # EXACTLY ONE OF THE FOLLOWING FIVE "for" LINES MUST BE UNCOMMENTED! 
 
   # xlibre-server is built twice due to a circular dependency on input-libinput in xlibre-driver
   for x_source_dir in proto data util xcb lib app doc xlibre-server xlibre-driver xlibre-server font ; do
