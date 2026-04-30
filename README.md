@@ -17,40 +17,13 @@ When you see that XLibre works the way you want it, you can switch the default r
 
 ## Prebuilt XLibre Packages for Slackware-15.0
 
-**Update:** This option is temporarily unavailable until some issues with workflows are resolved.
-
 Thanks to [rc-05](https://github.com/rc-05) it turned out that it is perfectly possible to build XLibre on a stable Slackware-15.0. He provided a CI script that rebuilds the packages for 64 bit each time this repository gets updated. Just go to [Releases](https://github.com/ONykyf/X11Libre-SlackBuild/releases) and get `XLibre-Slackware-15-x86_64-{release date and time}-{commit sha reference}.tar.gz` archive with the latest release, unpack it in some directory, and run
 
 ```shell
 cat blacklist >> /etc/slackpkg/blacklist
 upgradepkg --reinstall *.txz
 ```
-
-Several Slackware packages need also to be upgraded for XLibre to run properly, all you have to do is:
-
-- to go to slackware-15.0 [**testing**](https://slackware.uk/slackware/slackware64-15.0/testing/) directory, grab `libdrm-2.4.125-x86_64-1_slack15.0.txz`, `libva-2.22.0-x86_64-1_slack15.0.txz`, `mesa-25.0.7-x86_64-2_slack15.0.txz`, and `spirv-llvm-translator-20.1.3-x86_64-1_slack15.0.txz`, and run
-
-```shell
-upgradepkg --reinstall libdrm-2.4.125-x86_64-1_slack15.0.txz libva-2.22.0-x86_64-1_slack15.0.txz mesa-25.0.7-x86_64-2_slack15.0.txz spirv-llvm-translator-20.1.3-x86_64-1_slack15.0.txz
-```
-
-to replace `libdrm`, `libva`, `mesa`, and `spirv-llvm-translator` with newer versions.
-
-- to take `llvm-20.1.8-x86_64-1_slack15.0.txz` at slackware-15.0 [**extra**](https://slackware.uk/slackware/slackware64-15.0/extra/) directory and upgrade it:
-
-```shell
-upgradepkg llvm-20.1.8-x86_64-1_slack15.0.txz
-```
-
-for X drivers to build and function correctly.
-
-Older LLVM versions are available as `llvm13-compat`, `llvm17-compat` and `llvm19-compat`. These packages can be installed like this:
-
-```shell
-slackpkg install llvm13-compat llvm17-compat llvm-19compat
-```
-
-or manually by grabbing them from the slackware-15.0 [**extra**](https://slackware.uk/slackware/slackware64-15.0/extra/) directory and simply running `installpkg` on each package.
+Please be advised that the archive is about 478 Mb (498 Mb when unpacked), but 384 Mb of this took newer versions of Mesa, libdrm and different flavours of LLVM, namely llvm-22 (248 Mb!) and compatibilty files for llvm-21, llvm-20, llvm-19, llvm-17, and llvm-13, which it does not hurt to have on your Slackware stable anyway.
 
 Now you have a working XLibre!
 
