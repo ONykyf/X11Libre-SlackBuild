@@ -31,7 +31,32 @@ Now you have a working XLibre!
 
 It is assumed that you have installed the entire X packages set. Some things of it will be necessary to build XLibre, another ones will be overwritten or upgraded during XLibre install. This set is not that large, so it's safer to install it completely.
 
-If you have a more or less recent Slackware-current, this is sufficient. For a stable Slackware-15.0 or an older Slackware-current, please upgrade several outdated packages as described above.
+If you have a more or less recent Slackware-current, this is sufficient. For a stable Slackware-15.0 or an older Slackware-current, please upgrade several outdated packages:
+
+- go to slackware-15.0 [**testing**](https://slackware.uk/slackware/slackware64-15.0/testing/) directory, grab `libdrm-2.4.125-x86_64-1_slack15.0.txz`, `libva-2.22.0-x86_64-1_slack15.0.txz`, `mesa-25.0.7-x86_64-2_slack15.0.txz`, and `spirv-llvm-translator-20.1.3-x86_64-1_slack15.0.txz`, and run
+
+```shell
+upgradepkg --reinstall libdrm-2.4.125-x86_64-1_slack15.0.txz libva-2.22.0-x86_64-1_slack15.0.txz mesa-25.0.7-x86_64-2_slack15.0.txz spirv-llvm-translator-20.1.3-x86_64-1_slack15.0.txz
+```
+
+to replace `libdrm`, `libva`, `mesa`, and `spirv-llvm-translator` with newer versions.
+
+- take `llvm-20.1.8-x86_64-1_slack15.0.txz` at slackware-15.0 [**extra**](https://slackware.uk/slackware/slackware64-15.0/extra/) directory and upgrade it:
+
+```shell
+upgradepkg llvm-20.1.8-x86_64-1_slack15.0.txz
+```
+
+for X drivers to build and function correctly.
+
+Older LLVM versions are available as `llvm13-compat`, `llvm17-compat` and `llvm19-compat`. These packages can be installed like this:
+
+```shell
+slackpkg install llvm13-compat llvm17-compat llvm-19compat
+```
+
+or manually by grabbing them from the slackware-15.0 [**extra**](https://slackware.uk/slackware/slackware64-15.0/extra/) directory and simply running `installpkg` on each package.
+
 
 ## Getting the Build Files
 
