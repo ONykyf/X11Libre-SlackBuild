@@ -1,0 +1,18 @@
+--- xserver-master/hw/xfree86/compat/10-nvidia.conf.in.orig	2026-04-30 11:37:53.551567541 +0300
++++ xserver-master/hw/xfree86/compat/10-nvidia.conf.in	2026-04-30 11:38:29.277096469 +0300
+@@ -10,5 +10,6 @@
+         MatchDriver "nvidia-drm"
+         Driver "nvidia"
+         Option "AllowEmptyInitialConfiguration"
++        Option "IgnoreABI"
+         ModulePath "@libdir@/nvidia/xorg"
+ EndSection
+--- xserver-master/hw/xfree86/compat/10-nvidia-modules.conf.in.orig	2026-04-30 11:37:46.288889293 +0300
++++ xserver-master/hw/xfree86/compat/10-nvidia-modules.conf.in	2026-04-30 11:38:50.333723412 +0300
+@@ -10,5 +10,6 @@
+         MatchDriver "nvidia-drm"
+         Module "glx"
+         Module "glxserver_nvidia"
++        Option "IgnoreABI"
+         ModulePath "@libdir@/nvidia/xorg"
+ EndSection

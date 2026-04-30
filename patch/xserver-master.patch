@@ -15,16 +15,19 @@ zcat $CWD/patch/xserver-master/fix-nouveau-segfault.diff.gz | patch -p1 --verbos
 # Added here 2018/7.
 zcat $CWD/patch/xserver-master/0001-xfree86-use-modesetting-driver-by-default-on-GeForce.patch.gz | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
 
-# Only use Intel DDX with pre-gen4 hardware. Newer hardware will the the modesetting driver by default:
+# Only use Intel DDX with pre-gen4 hardware. Newer hardware will use the the modesetting driver by default:
 cat $CWD/patch/xserver-master/use-intel-on-more-pre-gen4.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
 
 # Flush pending glamor operations before CloseScreen.
 cat $CWD/patch/xserver-master/xlibre-xserver-flush-pending-before-closescreen.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
 
+# Separate setting ModulePath for drivers and modules.
+cat $CWD/patch/xserver-master/xlibre-xserver-split-10-nvidia.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+
 # Simplify setting IgnoreABI for certain drivers.
 cat $CWD/patch/xserver-master/xlibre-xserver-set-ignore-abi.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
 cat $CWD/patch/xserver-master/xlibre-xserver-outputclass-ignore-abi.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
-cat $CWD/patch/xserver-master/xlibre-xserver-install-10-nvidia.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+cat $CWD/patch/xserver-master/xlibre-xserver-abi-10-nvidia.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
 cat $CWD/patch/xserver-master/xlibre-xserver-update-man-ignore-abi.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
 
 # Get rid of XNFasprintf in favor of asprintf.
@@ -40,4 +43,4 @@ cat $CWD/patch/xserver-master/xlibre-xserver-platform-multi-crt.patch | patch -p
 cat $CWD/patch/xserver-master/xlibre-xserver-fb-busid.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
 
 # Allow to replace ModulePath for specific drivers and modules.
-cat $CWD/patch/xserver-master/xlibre-xserver-modulepath-replace.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+#cat $CWD/patch/xserver-master/xlibre-xserver-modulepath-replace.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }

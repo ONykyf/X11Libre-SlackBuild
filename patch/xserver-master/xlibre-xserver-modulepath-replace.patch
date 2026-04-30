@@ -32,12 +32,21 @@
                              LogMessageVerb(X_CONFIG, 1, "OutputClass \"%s\" ModulePath for modules %s overridden with \"%s\"\n",
                                      cl->identifier, cl->modules, driver_path);
                          } else {
---- xserver-master/hw/xfree86/compat/10-nvidia.conf.in.orig	2025-12-29 20:11:59.589165363 +0200
-+++ xserver-master/hw/xfree86/compat/10-nvidia.conf.in	2025-12-29 21:33:51.073322531 +0200
-@@ -13,5 +13,5 @@
- 	Module "glxserver_nvidia"
- 	Option "AllowEmptyInitialConfiguration"
- 	Option "IgnoreABI"
--	ModulePath "@libdir@/nvidia/xorg"
-+	ModulePath "@libdir@/nvidia/xorg,"
+--- xserver-master/hw/xfree86/compat/10-nvidia.conf.in.orig	2026-04-30 11:50:48.902398023 +0300
++++ xserver-master/hw/xfree86/compat/10-nvidia.conf.in	2026-04-30 11:51:25.968683359 +0300
+@@ -11,5 +11,5 @@
+         Driver "nvidia"
+         Option "AllowEmptyInitialConfiguration"
+         Option "IgnoreABI"
+-        ModulePath "@libdir@/nvidia/xorg"
++        ModulePath "@libdir@/nvidia/xorg,"
+ EndSection
+--- xserver-master/hw/xfree86/compat/10-nvidia-modules.conf.in.orig	2026-04-30 11:50:42.285387197 +0300
++++ xserver-master/hw/xfree86/compat/10-nvidia-modules.conf.in	2026-04-30 11:51:15.806598468 +0300
+@@ -11,5 +11,5 @@
+         Module "glx"
+         Module "glxserver_nvidia"
+         Option "IgnoreABI"
+-        ModulePath "@libdir@/nvidia/xorg"
++        ModulePath "@libdir@/nvidia/xorg,"
  EndSection

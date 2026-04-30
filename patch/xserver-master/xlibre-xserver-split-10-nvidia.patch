@@ -1,0 +1,58 @@
+--- xserver-xlibre-xserver-25.1.5/hw/xfree86/compat/10-nvidia.conf.in.orig	2026-04-30 10:16:33.607253357 +0300
++++ xserver-xlibre-xserver-25.1.5/hw/xfree86/compat/10-nvidia.conf.in	2026-04-30 10:17:57.292314732 +0300
+@@ -1,16 +1,15 @@
+ # This xorg.conf.d configuration snippet configures the X server to
+-# automatically load the nvidia X driver and nvidia GLX libraries
+-# when it detects a device driven by nvidia-drm.ko kernel module.
++# automatically load the nvidia X driver when it detects a device
++# driven by the nvidia-drm kernel driver.
+ # Please note that this works on Linux kernels version 6.12 or higher
+ # with CONFIG_DRM enabled, and only if the nvidia-drm.ko kernel module
++# for the versions 390 and later of the nvidia driver or the nvidia.ko
+-# is loaded before the X server is started.
++# kernel module for the version 340 is loaded before the X server is started.
+ 
+ Section "OutputClass"
+-	Identifier "NVidia"
+-	MatchDriver "nvidia-drm"
+-	Driver "nvidia"
+-	Module "glx"
+-	Module "glxserver_nvidia"
+-	Option "AllowEmptyInitialConfiguration"
+-	ModulePath "@libdir@/nvidia/xorg"
++        Identifier "NVidia"
++        MatchDriver "nvidia-drm"
++        Driver "nvidia"
++        Option "AllowEmptyInitialConfiguration"
++        ModulePath "@libdir@/nvidia/xorg"
+ EndSection
+--- xserver-xlibre-xserver-25.1.5/hw/xfree86/compat/10-nvidia-modules.conf.in.orig	2026-04-30 10:16:52.845141263 +0300
++++ xserver-xlibre-xserver-25.1.5/hw/xfree86/compat/10-nvidia-modules.conf.in	2026-04-30 10:18:42.108146551 +0300
+@@ -0,0 +1,15 @@
++# This xorg.conf.d configuration snippet is a supplement to
++# 10-nvidia.conf that sets module paths for nvidia GLX libraries
++# when it detects a device driven by the nvidia-drm kernel driver.
++# Please note that this works on Linux kernels version 6.12 or higher
++# with CONFIG_DRM enabled, and only if the nvidia-drm.ko kernel module
++# for the versions 390 and later of the nvidia driver or the nvidia.ko
++# kernel module for the version 340 is loaded before the X server is started.
++
++Section "OutputClass"
++        Identifier "NVidia-modules"
++        MatchDriver "nvidia-drm"
++        Module "glx"
++        Module "glxserver_nvidia"
++        ModulePath "@libdir@/nvidia/xorg"
++EndSection
+--- xserver-xlibre-xserver-25.1.5/hw/xfree86/compat/meson.build.orig	2026-04-30 10:20:12.174811579 +0300
++++ xserver-xlibre-xserver-25.1.5/hw/xfree86/compat/meson.build	2026-04-30 10:22:06.430041274 +0300
+@@ -27,3 +27,9 @@
+     configuration: nvidia_conf,
+     install_dir: join_paths(get_option('datadir'), 'X11/xorg.conf.d'),
+ )
++configure_file(
++    input: '10-nvidia-modules.conf.in',
++    output: '10-nvidia-modules.conf',
++    configuration: nvidia_conf,
++    install_dir: join_paths(get_option('datadir'), 'X11/xorg.conf.d'),
++)
