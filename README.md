@@ -228,7 +228,7 @@ Now it's your playground and you are free to experiment.
 
 ## nVidia legacy proprietary drivers
 
-They are not included into this repository, but you can get [here](https://github.com/ONykyf/nvidia390-slackbuild) slackbuilds with sources for _nvidia340_, _nvidia390_, and _nvidia470_ drivers that work nicely with this XLibre install.
+They are not included into this repository, but you can get [here](https://github.com/ONykyf/nvidia-340-390-470-580-slackbuilds) slackbuilds with sources for _NVidia 340_, _NVidia 390_, _NVidia 470_, and _NVidia 580_ drivers that work nicely with this XLibre install.
 
 ## Contact
 
