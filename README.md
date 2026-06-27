@@ -33,7 +33,7 @@ Thanks to [rc-05](https://github.com/rc-05) it turned out that it is perfectly p
 
 ```shell
 cat blacklist >> /etc/slackpkg/blacklist
-upgradepkg --reinstall *.txz
+upgradepkg --install-new --reinstall *.txz
 ```
 Please be advised that the archive is about 478 Mb (498 Mb when unpacked), but 384 Mb of this took newer versions of Mesa, libdrm and different flavours of LLVM, namely llvm-22 (248 Mb!) and compatibilty files for llvm-21, llvm-20, llvm-19, llvm-17, and llvm-13, which it does not hurt to have on your Slackware stable anyway.
 
@@ -48,7 +48,7 @@ If you have a more or less recent Slackware-current, this is sufficient. For a s
 - go to slackware-15.0 [**testing**](https://slackware.uk/slackware/slackware64-15.0/testing/) directory, grab `libdrm-2.4.125-x86_64-1_slack15.0.txz`, `libva-2.22.0-x86_64-1_slack15.0.txz`, `mesa-25.0.7-x86_64-2_slack15.0.txz`, and `spirv-llvm-translator-20.1.3-x86_64-1_slack15.0.txz`, and run
 
 ```shell
-upgradepkg --reinstall libdrm-2.4.125-x86_64-1_slack15.0.txz libva-2.22.0-x86_64-1_slack15.0.txz mesa-25.0.7-x86_64-2_slack15.0.txz spirv-llvm-translator-20.1.3-x86_64-1_slack15.0.txz
+upgradepkg --install-new --reinstall libdrm-2.4.125-x86_64-1_slack15.0.txz libva-2.22.0-x86_64-1_slack15.0.txz mesa-25.0.7-x86_64-2_slack15.0.txz spirv-llvm-translator-20.1.3-x86_64-1_slack15.0.txz
 ```
 
 to replace `libdrm`, `libva`, `mesa`, and `spirv-llvm-translator` with newer versions.
@@ -56,7 +56,7 @@ to replace `libdrm`, `libva`, `mesa`, and `spirv-llvm-translator` with newer ver
 - take `llvm-20.1.8-x86_64-1_slack15.0.txz` at slackware-15.0 [**extra**](https://slackware.uk/slackware/slackware64-15.0/extra/) directory and upgrade it:
 
 ```shell
-upgradepkg llvm-20.1.8-x86_64-1_slack15.0.txz
+upgradepkg --install-new --reinstall llvm-20.1.8-x86_64-1_slack15.0.txz
 ```
 
 for X drivers to build and function correctly.
