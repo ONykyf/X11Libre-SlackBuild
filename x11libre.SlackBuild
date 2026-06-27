@@ -225,7 +225,7 @@ no_usr_share_doc() {
 
         # Let's figure out the version number on the modular package:
         if [ "$PKGNAME" = "xserver-master" ] ; then
-          MODULAR_PACKAGE_VERSION="25.1.99"
+          MODULAR_PACKAGE_VERSION="25.2.99"
         else
           MODULAR_PACKAGE_VERSION=$(echo $x_pkg | rev | cut -f 3- -d . | cut -f 1 -d - | rev)
         fi
@@ -268,7 +268,7 @@ no_usr_share_doc() {
         fi
 
         if [ "$PKGNAME" = "xserver-master" ] ; then
-          sed -i -r "s|^( *)version: .*$|\1version: '25.1.99',|" ./meson.build
+          sed -i -r "s|^( *)version: .*$|\1version: '25.2.99',|" ./meson.build
         fi
 
         # I heard somewhere that -O2 breaks some chipset or another.  If you encounter

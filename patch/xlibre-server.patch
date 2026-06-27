@@ -15,12 +15,6 @@ zcat $CWD/patch/xlibre-server/fix-nouveau-segfault.diff.gz | patch -p1 --verbose
 # Added here 2018/7.
 zcat $CWD/patch/xlibre-server/0001-xfree86-use-modesetting-driver-by-default-on-GeForce.patch.gz | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
 
-# Only use Intel DDX with pre-gen4 hardware. Newer hardware will use the the modesetting driver by default:
-zcat $CWD/patch/xlibre-server/06_use-intel-only-on-pre-gen4.diff.gz | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
-
-# Flush pending glamor operations before CloseScreen.
-cat $CWD/patch/xlibre-server/xlibre-xserver-flush-pending-before-closescreen.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
-
 # Separate setting ModulePath for drivers and modules.
 cat $CWD/patch/xlibre-server/xlibre-xserver-split-10-nvidia.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
 
@@ -45,5 +39,4 @@ cat $CWD/patch/xlibre-server/xlibre-xserver-fb-busid.patch | patch -p1 --verbose
 # Allow to replace ModulePath for specific drivers and modules.
 #cat $CWD/patch/xlibre-server/xlibre-xserver-modulepath-replace.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
 
-# Add SingleDriver option to prevent adding non-GPU screens by more that one driver.
-cat $CWD/patch/xlibre-server/xlibre-xserver-singledriver.patch | patch -p1 --verbose -b -z .orig || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+#cat $CWD/patch/xlibre-server/xlibre-xserver-abi-23.patch | patch -p1 --verbose  -b -z .orig || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }

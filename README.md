@@ -1,6 +1,18 @@
-# X11Libre-SlackBuild
+﻿# X11Libre-SlackBuild
 
 This repository provides a Slackware X11 build tree modified to build [XLibre](https://github.com/X11Libre/xserver). The sources were imported from Slackware-current Xorg and the XLibre project on July 1, 2025 and are constantly updated.
+
+## Objectives
+
+Now, once XLibre xserver and drivers have been included by The Man into Slackware-current /testing directory, which is clearly a GREAT THING, the goal of this repository has been changed. The packages [officially provided](https://slackware.zero.com.ar/slackware/slackware64-current/testing/packages/xlibre/) by Slackware follow the long-standing general principle: all software is kept as “valilla” as possible, with exceptions possible mostly for rare patches adopted long time ago. Chances are good that you will encounter no problems, as XLibre is mature enough now.
+
+On the other hand, this repository is updated based on its author experience in maintaining XLibre installs on numerous desktops and laptops. Convenience and additional features are primary goals. Therefore some pull requests submitted but not yet adopted by mainstream, are applied to the source, but only if they proved to be safe and useful. Gradually they move to stable and/or master versions, so disappear from patches, and other ones are proposed. Examples include options to configure and run multiseat systems or to use legacy nVidia drivers. The latter need also `legacy_nvidia_padding` and `legacy_nvidia_340x` confguration options, the second of which is not enabled by default in the official package, but does not hurt, so we enable it as well.
+
+nVidia legacy proprietary drivers are not included here, but you can get [here](https://github.com/ONykyf/nvidia-340-390-470-580-slackbuilds) slackbuilds with sources for _NVidia 340_, _NVidia 390_, _NVidia 470_, and _NVidia 580_ drivers that has been tested to work nicely with this XLibre install.
+
+Another goal is to provide XLibre for Slackware-15.0 users.
+
+Summing up, this repository will be maintained as a testbed for newer features and as a contact point where users can submit bug complaints and proposals concerning XLibre experience on Slackware, so that they will be taken into account in the development process, and the result will appear in the [official Slackware-current XLibre packages](https://slackware.zero.com.ar/slackware/slackware64-current/testing/packages/xlibre/).
 
 ## Preparing for Install
 
@@ -225,10 +237,6 @@ rm -rf xserver-master
 ```
 and replace the file `src/xserver-master/xserver-master.tar.gz` with the obtained one. PLEASE be advised that the patches in `patch/xserver-master` may then stop working or simply fail to be applied cleanly, e.g., if they have already been merged into master.
 Now it's your playground and you are free to experiment.
-
-## nVidia legacy proprietary drivers
-
-They are not included into this repository, but you can get [here](https://github.com/ONykyf/nvidia-340-390-470-580-slackbuilds) slackbuilds with sources for _NVidia 340_, _NVidia 390_, _NVidia 470_, and _NVidia 580_ drivers that work nicely with this XLibre install.
 
 ## Contact
 

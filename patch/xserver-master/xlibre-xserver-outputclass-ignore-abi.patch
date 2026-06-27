@@ -127,7 +127,7 @@
          char *busid = xf86_platform_odev_attributes(i)->busid;
  
          if (pci && busid && (strncmp(busid, "pci:", 4) == 0)) {
-@@ -350,6 +351,39 @@
+@@ -350,6 +351,41 @@
                  }
                  /* Otherwise global module search path is left unchanged */
              }
@@ -140,8 +140,9 @@
 +                    if (cl->modules) {
 +                        LogMessageVerb(X_CONFIG, 1, "    and for modules \"%s\" as well\n",
 +                                cl->modules);
-+                        XNFasprintf(&copy, "%s", cl->modules);
-+                        curr = copy;
++                        char *copy = strdup(cl->modules);
++                        char *curr = copy;
++                        char *next;
 +                        while ((curr = strtok_r(curr, ",", &next))) {
 +                            if (*curr) LoaderSetIgnoreABI(curr);
 +                            curr = NULL;
@@ -151,8 +152,9 @@
 +                } else if (cl->modules) {
 +                    LogMessageVerb(X_CONFIG, 1, "OutputClass \"%s\" sets modules \"%s\" to ignore ABI for \"%s\" managed by %s\n",
 +                               cl->identifier, cl->modules, dev->attribs->path, dev->attribs->driver);
-+                    XNFasprintf(&copy, "%s", cl->modules);
-+                    curr = copy;
++                    char *copy = strdup(cl->modules);
++                    char *curr = copy;
++                    char *next;
 +                    while ((curr = strtok_r(curr, ",", &next))) {
 +                        if (*curr) LoaderSetIgnoreABI(curr);
 +                        curr = NULL;

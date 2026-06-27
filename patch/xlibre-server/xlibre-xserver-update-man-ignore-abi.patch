@@ -9,7 +9,7 @@
  .B OutputClass
  specific kinds of
  .B Option
-@@ -1374,26 +1374,58 @@
+@@ -1374,26 +1374,57 @@
  .RE
  .PP
  .TP 7
@@ -61,9 +61,8 @@
 +or/and one or more
 +.B Module
 +.I \*qmodule\*q
-+are present, then for this driver/modules a search path is replaced with
-+the string \(lq@modulepath@\(rq, or, if the last character of this string is a comma,
-+then a search path is obtained by prepending \(lq@modulepath@\(rq to the
++are present, then for this driver/modules a search path is obtained by
++prepending \(lq@modulepath@\(rq to the
  .I standard
  search path \(lq@modulepath@\(rq for loadable Xorg server modules (not the
  .I effective
