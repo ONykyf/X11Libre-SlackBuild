@@ -11,7 +11,7 @@ else
 fi
 
 [ -r ${SLACK_X_BUILD_DIR}/${PKGNAME}.configure_failed ] || \
-CFLAGS="$SLKCFLAGS -Wno-error=implicit-function-declaration" \
+CFLAGS="$SLKCFLAGS -Wno-error=implicit-function-declaration -D_GNU_SOURCE=1" \
 CXXFLAGS=$SLKCFLAGS \
 $CONFIGURE \
   --prefix=/usr \
