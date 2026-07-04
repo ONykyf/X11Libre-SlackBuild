@@ -1,0 +1,23 @@
+diff --git a/os/osdep.h_ b/os/osdep.h
+index 631ebf8..160ca72 100644
+--- a/os/osdep.h_
++++ b/os/osdep.h
+@@ -57,6 +57,7 @@ SOFTWARE.
+ #include <X11/Xos.h>
+ #include <X11/Xmd.h>
+ #include <X11/Xdefs.h>
++#include <sys/random.h>
+ 
+ /*
+  * return the least significant bit in x which is set
+@@ -90,8 +91,8 @@ static inline void arc4random_buf(void *buf, size_t nbytes)
+ {
+ #ifdef HAVE_GETRANDOM
+     ssize_t pos = 0;
+-    while (pos < len) {
+-        ssize_t ret = getrandom(buf + pos, nbytes - pos, 0);
++    while (pos < (ssize_t)nbytes) {
++        ssize_t ret = getrandom((unsigned char*)buf + pos, nbytes - pos, 0);
+         if (ret <= 0) {
+             if (ret < 0 && errno == EINTR)
+                 continue;

@@ -40,3 +40,6 @@ cat $CWD/patch/xlibre-server/xlibre-xserver-fb-busid.patch | patch -p1 --verbose
 #cat $CWD/patch/xlibre-server/xlibre-xserver-modulepath-replace.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
 
 #cat $CWD/patch/xlibre-server/xlibre-xserver-abi-23.patch | patch -p1 --verbose  -b -z .orig || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+
+# Fix build without libbsd.
+cat $CWD/patch/xserver-master/fix-build-without-libbsd-replace.patch | patch -p1 --verbose || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
