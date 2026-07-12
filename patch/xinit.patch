@@ -1,4 +1,10 @@
 # The X server will eventually create this file, but not before emitting
 # an error shortly after running startx. Making sure the file is created
 # and given correct permissions once we have a filename avoids this.
-cat $CWD/patch/xinit/xinit.create.xserverauthfile.diff | patch -p1 || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.failed ; continue ; }
+cat $CWD/patch/xinit/xinit.create.xserverauthfile.diff | patch -p1 || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }
+
+# With Plasma slated to drop X11 support soon, let's patch startx to avoid
+# disrupting everyone's workflow. With this patch, if Plasma X11 can not be
+# started due to kwin_11 having gone missing, we'll just start Plasma Wayland
+# instead and hope that you don't notice.
+cat $CWD/patch/xinit/xinit.start.plasma.wayland.if.plasma.x11.is.not.available.diff | patch -p1 || { touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.patch_failed ; continue ; }

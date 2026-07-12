@@ -1,3 +1,5 @@
+rm -f ${SLACK_X_BUILD_DIR}/${PKGNAME}.configure_failed
+
 mkdir python3
 cd python3
   CFLAGS=$SLKCFLAGS \
@@ -13,5 +15,6 @@ cd python3
     --docdir=/usr/doc/${PKGNAME}-${MODULAR_PACKAGE_VERSION} \
     --with-udev-rules-dir=/lib/udev/rules.d \
     --disable-static \
-    --build=$ARCH-slackware-linux
+    --build=$ARCH-slackware-linux \
+    || touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.configure_failed
 cd -

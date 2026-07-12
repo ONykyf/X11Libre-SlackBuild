@@ -1,3 +1,5 @@
+rm -f ${SLACK_X_BUILD_DIR}/${PKGNAME}.configure_failed
+
 # Of course, the libtool stuff included in the tarball is broken :/
 autoreconf -v -i -f
 
@@ -13,4 +15,5 @@ CXXFLAGS=$SLKCFLAGS \
   --docdir=/usr/doc/${PKGNAME}-${MODULAR_PACKAGE_VERSION} \
   --disable-static \
   --enable-year2038 \
-  --build=$ARCH-slackware-linux
+  --build=$ARCH-slackware-linux \
+  || touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.configure_failed

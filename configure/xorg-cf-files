@@ -1,5 +1,7 @@
+rm -f ${SLACK_X_BUILD_DIR}/${PKGNAME}.configure_failed
 export CFLAGS="$SLKCFLAGS"
 export CXXFLAGS="$SLKCFLAGS"
+
 mkdir build
 cd build
 meson setup \

@@ -6,6 +6,9 @@ cp -a $CWD/post-install/xorg-server/Xwrapper.config $PKG/etc/X11/Xwrapper.config
 chown root:root $PKG/etc/X11/Xwrapper.config.new
 chmod 644 $PKG/etc/X11/Xwrapper.config.new
 
+# Harden perms on /usr/libexec/Xorg.wrap:
+chmod 4711 $PKG/usr/libexec/Xorg.wrap
+
 # Create a sample keyboard layout 
 # Enable zapping by default
 cat << EOF > $PKG/usr/share/X11/xorg.conf.d/90-keyboard-layout-evdev.conf

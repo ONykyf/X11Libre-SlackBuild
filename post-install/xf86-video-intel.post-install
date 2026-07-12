@@ -1,2 +1,6 @@
 install -D -m 0755 tools/dri3info $PKG/usr/bin/dri3info || exit 1
 strip --strip-unneeded $PKG/usr/bin/dri3info
+
+# Harden perms on /usr/libexec/xf86-video-intel-backlight-helper:
+chmod 4711 $PKG/usr/libexec/xf86-video-intel-backlight-helper
+

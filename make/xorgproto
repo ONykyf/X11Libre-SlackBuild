@@ -16,4 +16,3 @@ for docfile in PM_spec compositeproto.txt damageproto.txt dri2proto.txt dri3prot
   chown root:root $PKG/usr/doc/${PKGNAME}-${MODULAR_PACKAGE_VERSION}/${docfile}
   chmod 644 $PKG/usr/doc/${PKGNAME}-${MODULAR_PACKAGE_VERSION}/${docfile}
 done
-

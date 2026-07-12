@@ -1,6 +1,6 @@
+rm -f ${SLACK_X_BUILD_DIR}/${PKGNAME}.configure_failed
 export CFLAGS="$SLKCFLAGS"
 export CXXFLAGS="$SLKCFLAGS"
-rm -f ${SLACK_X_BUILD_DIR}/${PKGNAME}.configure_failed
 
 mkdir build
 cd build

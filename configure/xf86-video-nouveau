@@ -1,4 +1,5 @@
 rm -f ${SLACK_X_BUILD_DIR}/${PKGNAME}.configure_failed
+
 if [ -x ./configure ]; then
   CONFIGURE="./configure"
 elif [ -x ./autogen.sh ]; then

@@ -1,3 +1,5 @@
+rm -f ${SLACK_X_BUILD_DIR}/${PKGNAME}.configure_failed
+
 if [ -L /lib${LIBDIRSUFFIX}/libpam.so.? ]; then
   XDM_PAM_OPTION="--with-pam"
 else
@@ -18,4 +20,5 @@ CXXFLAGS=$SLKCFLAGS \
   $XDM_PAM_OPTION \
   --disable-static \
   --enable-year2038 \
-  --build=$ARCH-slackware-linux
+  --build=$ARCH-slackware-linux \
+  || touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.configure_failed

@@ -9,4 +9,3 @@ ninja || touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.make_failed
   || touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.make_failed
 
 cd ..
-

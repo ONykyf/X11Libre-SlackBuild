@@ -1,3 +1,5 @@
+rm -f ${SLACK_X_BUILD_DIR}/${PKGNAME}.configure_failed
+
 # Don't use icecream:
 PATH=$(echo $PATH | sed "s|/usr/libexec/icecc/bin||g" | tr -s : | sed "s/^://g" | sed "s/:$//g")
 
@@ -9,8 +11,6 @@ fi
 
 export CFLAGS="$SLKCFLAGS"
 export CXXFLAGS="$SLKCFLAGS"
-rm -f ${SLACK_X_BUILD_DIR}/${PKGNAME}.configure_failed
-
 mkdir meson-build
 cd meson-build
 meson setup \

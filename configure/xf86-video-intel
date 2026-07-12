@@ -1,3 +1,5 @@
+rm -f ${SLACK_X_BUILD_DIR}/${PKGNAME}.configure_failed
+
 # xf86-video-intel requires SSE2 instructions on 32-bit x86:
 ALTCFLAGS="$SLKCFLAGS"
 case "$( uname -m )" in
@@ -19,4 +21,5 @@ CXXFLAGS="$ALTCFLAGS" \
   --enable-uxa \
   --with-default-dri=3 \
   --enable-year2038 \
-  --build=$ARCH-slackware-linux
+  --build=$ARCH-slackware-linux \
+ || touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.configure_failed

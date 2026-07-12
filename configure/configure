@@ -1,8 +1,18 @@
 rm -f ${SLACK_X_BUILD_DIR}/${PKGNAME}.configure_failed
 
+if [ -x ./configure ]; then
+  CONFIGURE="./configure"
+elif [ -x ./autogen.sh ]; then
+  CONFIGURE="./autogen.sh"
+else
+  echo "ERROR: neither ./configure nor ./autogen.sh found."
+  sleep 5
+  exit 1
+fi
+
 CFLAGS=$SLKCFLAGS \
 CXXFLAGS=$SLKCFLAGS \
-./configure \
+$CONFIGURE \
   --prefix=/usr \
   --libdir=/usr/lib${LIBDIRSUFFIX} \
   --sysconfdir=/etc \
@@ -15,4 +25,3 @@ CXXFLAGS=$SLKCFLAGS \
   --enable-year2038 \
   --build=$ARCH-slackware-linux \
   || touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.configure_failed
-

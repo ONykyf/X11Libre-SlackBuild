@@ -1,6 +1,6 @@
+rm -f ${SLACK_X_BUILD_DIR}/${PKGNAME}.configure_failed
 export CFLAGS="$SLKCFLAGS -Wno-error=array-bounds"
 export CXXFLAGS="$SLKCFLAGS"
-rm -f ${SLACK_X_BUILD_DIR}/${PKGNAME}.configure_failed
 
 mkdir meson-build
 cd meson-build

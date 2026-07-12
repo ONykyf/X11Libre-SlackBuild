@@ -1,3 +1,5 @@
+rm -f ${SLACK_X_BUILD_DIR}/${PKGNAME}.configure_failed
+
 CFLAGS=$SLKCFLAGS \
 CXXFLAGS=$SLKCFLAGS \
 ./configure \
@@ -11,4 +13,5 @@ CXXFLAGS=$SLKCFLAGS \
   --disable-static \
   --with-fc-confdir=/usr/share/fontconfig \
   --with-fontdir=/usr/share/fonts/TTF \
-  --build=$ARCH-slackware-linux
+  --build=$ARCH-slackware-linux \
+  || touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.configure_failed

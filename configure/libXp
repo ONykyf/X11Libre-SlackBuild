@@ -1,3 +1,5 @@
+rm -f ${SLACK_X_BUILD_DIR}/${PKGNAME}.configure_failed
+
 CFLAGS=$SLKCFLAGS \
 CXXFLAGS=$SLKCFLAGS \
 ./configure \
@@ -9,7 +11,8 @@ CXXFLAGS=$SLKCFLAGS \
   --mandir=/usr/man \
   --disable-static \
   --enable-year2038 \
-  --build=$ARCH-slackware-linux
+  --build=$ARCH-slackware-linux \
+  || touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.configure_failed
 #
 #  --docdir=/usr/doc/${PKGNAME}-${MODULAR_PACKAGE_VERSION}
 #

@@ -1,0 +1,34 @@
+--- ./startx.in.orig	2026-06-24 17:48:17.325837207 -0500
++++ ./startx.in	2026-06-24 17:49:23.009012106 -0500
+@@ -73,6 +73,31 @@
+ serverargs=""
+ vtarg=""
+ 
++# If kwin_x11 is gone, but the user wants Plasma, let's just start
++# Plasma Wayland to make this easy on everyone:
++if [ ! -x /usr/bin/kwin_x11 ]; then
++
++    if grep -q startplasma-x11 $userclientrc 2> /dev/null ; then
++        if [ -x /usr/bin/startkwayland ]; then
++            exec /usr/bin/startkwayland
++        else
++            echo "ERROR: Plasma (KDE) is selected in xinitrc, but kwin_x11 is missing."
++            echo "The Wayland fallback (/usr/bin/startkwayland) is not present or is not"
++            echo "executable. Giving up."
++            exit 1
++        fi
++    elif grep -q startplasma-x11 $sysclientrc 2> /dev/null ; then
++        if [ -x /usr/bin/startkwayland ]; then
++            exec /usr/bin/startkwayland
++        else
++            echo "ERROR: Plasma (KDE) is selected in xinitrc, but kwin_x11 is missing."
++            echo "The Wayland fallback (/usr/bin/startkwayland) is not present or is not"
++            echo "executable. Giving up."
++            exit 1
++        fi
++    fi
++
++fi
+ 
+ if [ "$(uname -s)" = "Darwin" ] ; then
+ 

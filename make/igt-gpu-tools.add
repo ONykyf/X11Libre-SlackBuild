@@ -1,1 +1,0 @@
-  || touch ${SLACK_X_BUILD_DIR}/${PKGNAME}.make_failed
